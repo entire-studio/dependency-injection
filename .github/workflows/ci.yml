@@ -53,8 +53,8 @@ jobs:
       - name: Run test suites
         working-directory: ./
         run: |
-          mkdir ../code-coverage-php-html-${{ matrix.php-versions }}
-          ./vendor/bin/phpunit -c phpunit.xml --coverage-clover ../code-coverage-php-clover-${{ matrix.php-versions }}.xml --coverage-html ../code-coverage-php-html-${{ matrix.php-versions }}
+          mkdir code-coverage-php-html-${{ matrix.php-versions }}
+          XDEBUG_MODE=coverage ./vendor/bin/phpunit -c phpunit.xml --coverage-clover code-coverage-php-clover-${{ matrix.php-versions }}.xml --coverage-html code-coverage-php-html-${{ matrix.php-versions }}
 
       - name: Upload code coverage report to GH
         uses: actions/upload-artifact@v3
