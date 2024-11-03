@@ -11,7 +11,7 @@
       <property name="ignoreComments" value="true"/>
     </properties>
   </rule>
-  <config name="testVersion" value="8.1"/>
+  <config name="testVersion" value="8.2"/>
   <file>src/</file>
   <file>test/</file>
 </ruleset>
