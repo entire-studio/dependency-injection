@@ -15,7 +15,6 @@ use ReflectionUnionType;
 
 class Container implements ContainerInterface
 {
-    private static ?Container $instance = null;
     /** @var array<string, callable|string> */
     private array $entries = [];
 
