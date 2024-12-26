@@ -16,15 +16,16 @@ use ReflectionUnionType;
 class Container implements ContainerInterface
 {
     private static ?Container $instance = null;
+    /** @var array<string, callable|string> */
     private array $entries = [];
 
-    public static function getInstance(): static
+    public static function getInstance(): self
     {
-        if (is_null(static::$instance)) {
-            static::$instance = new static();
+        if (is_null(self::$instance)) {
+            self::$instance = new self();
         }
 
-        return static::$instance;
+        return self::$instance;
     }
 
     public function __construct()
@@ -62,7 +63,7 @@ class Container implements ContainerInterface
     /**
      * @throws NotFoundException|ContainerException|ReflectionException
      */
-    private function resolve(string $id)
+    private function resolve(string $id): object
     {
         try {
             $reflectionClass = new ReflectionClass($id);
@@ -99,7 +100,7 @@ class Container implements ContainerInterface
             /**
              * @throws ContainerException|NotFoundException|ReflectionException
              */
-            function (ReflectionParameter $param) use ($id, $parameters) {
+            function (ReflectionParameter $param) use ($id) {
                 $name = $param->getName();
                 $type = $param->getType();
 
