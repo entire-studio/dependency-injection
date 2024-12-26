@@ -19,15 +19,6 @@ class Container implements ContainerInterface
     /** @var array<string, callable|string> */
     private array $entries = [];
 
-    public static function getInstance(): self
-    {
-        if (is_null(self::$instance)) {
-            self::$instance = new self();
-        }
-
-        return self::$instance;
-    }
-
     public function __construct()
     {
     }
