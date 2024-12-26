@@ -1,4 +1,4 @@
-# DependencyInjection
+# Dependency Injection
 
 ![Packagist Version (including pre-releases)](https://img.shields.io/packagist/v/entire-studio/dependency-injection?include_prereleases)
 ![GitHub release (latest SemVer including pre-releases)](https://img.shields.io/github/v/release/entire-studio/dependency-injection?include_prereleases&sort=semver)
@@ -77,6 +77,7 @@ See `examples/` for more examples.
 ## Commands
 
 ### Development
+- `composer test` - runs test suite.
+- `composer sat` - runs static analysis.
 - `composer style` - checks codebase against PSR-12 coding style.
 - `composer style:fix` - fixes basic coding style issues.
-- `composer test` - runs test suite.
