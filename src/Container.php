@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace EntireStudio\DependencyInjection;
 
+use Closure;
 use EntireStudio\DependencyInjection\Exceptions\ContainerException;
 use EntireStudio\DependencyInjection\Exceptions\NotFoundException;
 use Psr\Container\ContainerExceptionInterface;
@@ -18,7 +19,7 @@ use ReflectionUnionType;
 
 class Container implements ContainerInterface
 {
-    /** @var array<string, callable|string> */
+    /** @var array<string, Closure|string> */
     private array $entries = [];
 
     /** @var array<string, true> */
@@ -33,7 +34,7 @@ class Container implements ContainerInterface
         if ($this->has($id)) {
             $entry = $this->entries[$id];
 
-            if (is_callable($entry)) {
+            if ($entry instanceof Closure) {
                 return $entry($this);
             }
 
@@ -48,7 +49,7 @@ class Container implements ContainerInterface
         return isset($this->entries[$id]);
     }
 
-    public function set(string $id, callable|string $concrete): void
+    public function set(string $id, Closure|string $concrete): void
     {
         $this->entries[$id] = $concrete;
     }

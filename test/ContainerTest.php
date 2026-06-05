@@ -175,4 +175,14 @@ class ContainerTest extends TestCase
         $container = $this->getContainer();
         $container->get(Loop1::class);
     }
+
+    public function testStringEntryMatchingGlobalFunctionIsTreatedAsClassRedirect(): void
+    {
+        $this->expectException(NotFoundException::class);
+        $this->expectExceptionMessage('Class "strlen" does not exist.');
+
+        $container = $this->getContainer();
+        $container->set('alias', 'strlen');
+        $container->get('alias');
+    }
 }
