@@ -392,4 +392,48 @@ class ContainerTest extends TestCase
 
         $this->assertSame($sentinel, $container->get(Base::class));
     }
+
+    public function testUnsetRemovesBinding(): void
+    {
+        $container = $this->getContainer();
+        $container->set(Base::class, ConcreteBase::class);
+        $container->get(Base::class);
+
+        $container->unset(Base::class);
+
+        $this->assertFalse($container->has(Base::class));
+    }
+
+    public function testUnsetClearsCachedInstanceSoNextGetReautowires(): void
+    {
+        $container = $this->getContainer();
+        $first = $container->get(Bread::class);
+
+        $container->unset(Bread::class);
+        $second = $container->get(Bread::class);
+
+        $this->assertNotSame($first, $second);
+    }
+
+    public function testClearDropsAllUserBindings(): void
+    {
+        $container = $this->getContainer();
+        $container->set(Base::class, ConcreteBase::class);
+        $container->value('flag', true);
+        $container->get(Bread::class);
+
+        $container->clear();
+
+        $this->assertFalse($container->has(Base::class));
+        $this->assertFalse($container->has('flag'));
+    }
+
+    public function testClearPreservesSelfRegistration(): void
+    {
+        $container = $this->getContainer();
+        $container->clear();
+
+        $this->assertSame($container, $container->get(ContainerInterface::class));
+        $this->assertSame($container, $container->get(Container::class));
+    }
 }

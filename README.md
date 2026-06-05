@@ -114,6 +114,9 @@ $di->get('db.dsn'); // 'sqlite::memory:'
 
 Re-registering with `set()`, `factory()`, or `value()` clears any cached state for that id.
 
+`unset($id)` drops a single binding (entry + cached instance + factory marker), and
+`clear()` resets all user state; the container's self-registration is preserved.
+
 ## Commands
 
 ### Development

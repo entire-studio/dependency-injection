@@ -33,6 +33,11 @@ class Container implements ContainerInterface
 
     public function __construct()
     {
+        $this->registerSelf();
+    }
+
+    private function registerSelf(): void
+    {
         $this->instances[ContainerInterface::class] = $this;
         $this->instances[self::class] = $this;
         $this->instances[static::class] = $this;
@@ -116,6 +121,28 @@ class Container implements ContainerInterface
     {
         $this->instances[$id] = $value;
         unset($this->entries[$id], $this->factories[$id]);
+    }
+
+    /**
+     * Remove the entry, any cached instance, and any factory marker for $id.
+     * Subsequent get($id) will attempt fresh resolution (autowiring) instead.
+     */
+    public function unset(string $id): void
+    {
+        unset($this->entries[$id], $this->instances[$id], $this->factories[$id]);
+    }
+
+    /**
+     * Drop all entries, cached instances, factories, and resolution state.
+     * The container's self-registration (ContainerInterface, self) is preserved.
+     */
+    public function clear(): void
+    {
+        $this->entries = [];
+        $this->instances = [];
+        $this->factories = [];
+        $this->resolving = [];
+        $this->registerSelf();
     }
 
     private function cache(string $id, mixed $instance): mixed
