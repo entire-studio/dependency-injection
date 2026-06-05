@@ -2,10 +2,22 @@
 
 ![Packagist Version (including pre-releases)](https://img.shields.io/packagist/v/entire-studio/dependency-injection?include_prereleases)
 ![GitHub release (latest SemVer including pre-releases)](https://img.shields.io/github/v/release/entire-studio/dependency-injection?include_prereleases&sort=semver)
+![PHP](https://img.shields.io/badge/php-8.2%20%7C%208.3%20%7C%208.4%20%7C%208.5-blue)
 [![CI](https://github.com/entire-studio/dependency-injection/actions/workflows/ci.yml/badge.svg)](https://github.com/entire-studio/dependency-injection/actions/workflows/ci.yml)
 [![codecov](https://codecov.io/github/entire-studio/dependency-injection/branch/master/graph/badge.svg?token=NTODzYRsCX)](https://codecov.io/github/entire-studio/dependency-injection)
 
-PSR-11 compatible dependency injection container
+PSR-11 compatible dependency injection container. Requires PHP 8.2+.
+
+## Contents
+
+- [Installation](#installation)
+- [Basic Usage](#basic-usage)
+- [Other examples](#other-examples)
+- [PSR-11](#psr-11)
+- [Lifecycle](#lifecycle)
+  - [Aliases and sharing](#aliases-and-sharing)
+- [Commands](#commands)
+- [Changelog](#changelog)
 
 ## Installation
 Install the latest version with
