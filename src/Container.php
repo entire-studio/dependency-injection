@@ -21,6 +21,9 @@ class Container implements ContainerInterface
     /** @var array<string, callable|string> */
     private array $entries = [];
 
+    /** @var array<string, true> */
+    private array $resolving = [];
+
     public function __construct()
     {
     }
@@ -66,6 +69,16 @@ class Container implements ContainerInterface
             );
         }
 
+        if (isset($this->resolving[$id])) {
+            throw new ContainerException(
+                sprintf(
+                    'Circular dependency detected while resolving "%s" (chain: %s).',
+                    $id,
+                    implode(' -> ', [...array_keys($this->resolving), $id])
+                )
+            );
+        }
+
         $reflectionClass = new ReflectionClass($id);
 
         if (!$reflectionClass->isInstantiable()) {
@@ -89,65 +102,79 @@ class Container implements ContainerInterface
             return new $id();
         }
 
-        $dependencies = array_map(
-            function (ReflectionParameter $param) use ($id) {
-                $name = $param->getName();
-                $type = $param->getType();
+        $this->resolving[$id] = true;
 
-                if (!$type) {
-                    throw new ContainerException(
-                        sprintf(
-                            'Failed to resolve class "%s" because param "%s" is missing a type hint.',
-                            $id,
-                            $name
-                        )
-                    );
-                }
-
-                if ($type instanceof ReflectionUnionType) {
-                    throw new ContainerException(
-                        sprintf(
-                            'Failed to resolve class "%s" because of union type for param "%s".',
-                            $id,
-                            $name
-                        )
-                    );
-                }
-
-                if ($type instanceof ReflectionIntersectionType) {
-                    throw new ContainerException(
-                        sprintf(
-                            'Failed to resolve class "%s" because of intersection type for param "%s".',
-                            $id,
-                            $name
-                        )
-                    );
-                }
-
-                if ($type instanceof ReflectionNamedType && !$type->isBuiltin()) {
-                    return $this->get($type->getName());
-                }
-
-                if ($param->isDefaultValueAvailable()) {
-                    return $param->getDefaultValue();
-                }
-
-                if ($param->allowsNull()) {
-                    return null;
-                }
-
-                throw new ContainerException(
-                    sprintf(
-                        'Failed to resolve class "%s" because param "%s" has built-in type "%s" and no default value.',
-                        $id,
-                        $name,
-                        $type instanceof ReflectionNamedType ? $type->getName() : (string) $type
-                    )
-                );
-            },
-            $parameters
-        );
+        try {
+            $dependencies = array_map(
+                fn(ReflectionParameter $param) => $this->resolveParameter($param, $id),
+                $parameters
+            );
+        } finally {
+            unset($this->resolving[$id]);
+        }
 
         return $reflectionClass->newInstanceArgs($dependencies);
+    }
+
+    /**
+     * @throws ContainerExceptionInterface
+     * @throws NotFoundExceptionInterface
+     * @throws ReflectionException
+     */
+    private function resolveParameter(ReflectionParameter $param, string $id): mixed
+    {
+        $name = $param->getName();
+        $type = $param->getType();
+
+        if (!$type) {
+            throw new ContainerException(
+                sprintf(
+                    'Failed to resolve class "%s" because param "%s" is missing a type hint.',
+                    $id,
+                    $name
+                )
+            );
+        }
+
+        if ($type instanceof ReflectionUnionType) {
+            throw new ContainerException(
+                sprintf(
+                    'Failed to resolve class "%s" because of union type for param "%s".',
+                    $id,
+                    $name
+                )
+            );
+        }
+
+        if ($type instanceof ReflectionIntersectionType) {
+            throw new ContainerException(
+                sprintf(
+                    'Failed to resolve class "%s" because of intersection type for param "%s".',
+                    $id,
+                    $name
+                )
+            );
+        }
+
+        if ($type instanceof ReflectionNamedType && !$type->isBuiltin()) {
+            return $this->get($type->getName());
+        }
+
+        if ($param->isDefaultValueAvailable()) {
+            return $param->getDefaultValue();
+        }
+
+        if ($param->allowsNull()) {
+            return null;
+        }
+
+        throw new ContainerException(
+            sprintf(
+                'Failed to resolve class "%s" because param "%s" has built-in type "%s" and no default value.',
+                $id,
+                $name,
+                $type instanceof ReflectionNamedType ? $type->getName() : (string) $type
+            )
+        );
     }
 }

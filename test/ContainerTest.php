@@ -14,6 +14,8 @@ use EntireStudio\DependencyInjection\Test\Mocks\Beer;
 use EntireStudio\DependencyInjection\Test\Mocks\Cocktail;
 use EntireStudio\DependencyInjection\Test\Mocks\ConcreteBase;
 use EntireStudio\DependencyInjection\Test\Mocks\D;
+use EntireStudio\DependencyInjection\Test\Mocks\Hen;
+use EntireStudio\DependencyInjection\Test\Mocks\Loop1;
 use EntireStudio\DependencyInjection\Test\Mocks\GreatInsulation;
 use EntireStudio\DependencyInjection\Test\Mocks\House;
 use EntireStudio\DependencyInjection\Test\Mocks\Insulation;
@@ -154,5 +156,23 @@ class ContainerTest extends TestCase
 
         $container = $this->getContainer();
         $container->get(Vodka::class);
+    }
+
+    public function testDirectCircularDependencyThrowsException(): void
+    {
+        $this->expectException(ContainerException::class);
+        $this->expectExceptionMessage('Circular dependency detected');
+
+        $container = $this->getContainer();
+        $container->get(Hen::class);
+    }
+
+    public function testIndirectCircularDependencyThrowsException(): void
+    {
+        $this->expectException(ContainerException::class);
+        $this->expectExceptionMessage('Circular dependency detected');
+
+        $container = $this->getContainer();
+        $container->get(Loop1::class);
     }
 }
