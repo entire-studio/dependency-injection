@@ -253,18 +253,18 @@ class Container implements ContainerInterface
         }
 
         foreach ($this->methodInjections[$id] as $injection) {
-            $method = $injection['method'];
-            if (!method_exists($instance, $method)) {
+            $callable = [$instance, $injection['method']];
+            if (!is_callable($callable)) {
                 throw new ContainerException(
                     sprintf(
-                        'Method injection for "%s" failed: method "%s" does not exist on %s.',
+                        'Method injection for "%s" failed: method "%s" is not callable on %s.',
                         $id,
-                        $method,
+                        $injection['method'],
                         $instance::class
                     )
                 );
             }
-            $this->call([$instance, $method], $injection['args']);
+            $this->call($callable, $injection['args']);
         }
     }
 
