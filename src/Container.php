@@ -31,7 +31,19 @@ class Container implements ContainerInterface
 
     public function get(string $id)
     {
-        if ($this->has($id)) {
+        $seen = [];
+
+        while ($this->has($id)) {
+            if (isset($seen[$id])) {
+                throw new ContainerException(
+                    sprintf(
+                        'Alias cycle detected: %s.',
+                        implode(' -> ', [...array_keys($seen), $id])
+                    )
+                );
+            }
+
+            $seen[$id] = true;
             $entry = $this->entries[$id];
 
             if ($entry instanceof Closure) {

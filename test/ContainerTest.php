@@ -185,4 +185,36 @@ class ContainerTest extends TestCase
         $container->set('alias', 'strlen');
         $container->get('alias');
     }
+
+    public function testMultiStepAliasChainIsFollowed(): void
+    {
+        $container = $this->getContainer();
+        $container->set(Base::class, 'intermediate');
+        $container->set('intermediate', ConcreteBase::class);
+
+        $instance = $container->get(Base::class);
+
+        $this->assertInstanceOf(ConcreteBase::class, $instance);
+    }
+
+    public function testAliasCycleThrowsException(): void
+    {
+        $this->expectException(ContainerException::class);
+        $this->expectExceptionMessage('Alias cycle detected');
+
+        $container = $this->getContainer();
+        $container->set('a', 'b');
+        $container->set('b', 'a');
+        $container->get('a');
+    }
+
+    public function testDirectSelfAliasThrowsException(): void
+    {
+        $this->expectException(ContainerException::class);
+        $this->expectExceptionMessage('Alias cycle detected');
+
+        $container = $this->getContainer();
+        $container->set('a', 'a');
+        $container->get('a');
+    }
 }
