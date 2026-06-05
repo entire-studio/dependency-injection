@@ -145,3 +145,6 @@ $di->set(LoggerB::class, fn(Container $c) => $c->get(FileLogger::class));
 - `composer sat` - runs static analysis.
 - `composer style` - checks codebase against PSR-12 coding style.
 - `composer style:fix` - fixes basic coding style issues.
+
+## Changelog
+See [CHANGELOG.md](CHANGELOG.md) for release history.
