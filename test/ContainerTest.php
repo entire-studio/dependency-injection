@@ -542,4 +542,22 @@ class ContainerTest extends TestCase
         $this->assertInstanceOf(SandwichWithDefault::class, $sandwich);
         $this->assertNull($sandwich->topping);
     }
+
+    public function testAliasesToSameTargetProduceDistinctInstancesByDesign(): void
+    {
+        $container = $this->getContainer();
+        $container->set('logger.a', ConcreteBase::class);
+        $container->set('logger.b', ConcreteBase::class);
+
+        $this->assertNotSame($container->get('logger.a'), $container->get('logger.b'));
+    }
+
+    public function testClosureDelegationSharesInstanceAcrossAliases(): void
+    {
+        $container = $this->getContainer();
+        $container->set('logger.a', fn(Container $c) => $c->get(ConcreteBase::class));
+        $container->set('logger.b', fn(Container $c) => $c->get(ConcreteBase::class));
+
+        $this->assertSame($container->get('logger.a'), $container->get('logger.b'));
+    }
 }

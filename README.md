@@ -117,6 +117,27 @@ Re-registering with `set()`, `factory()`, or `value()` clears any cached state f
 `unset($id)` drops a single binding (entry + cached instance + factory marker), and
 `clear()` resets all user state; the container's self-registration is preserved.
 
+### Aliases and sharing
+
+Singleton caching is keyed on the **requested** id, not the resolved target. Two
+aliases pointing at the same concrete class produce two distinct instances:
+
+```php
+$di->set(LoggerA::class, FileLogger::class);
+$di->set(LoggerB::class, FileLogger::class);
+$di->get(LoggerA::class); // FileLogger instance #1
+$di->get(LoggerB::class); // FileLogger instance #2 — not shared
+```
+
+To share a single instance across aliases, register the concrete first and have
+the aliases delegate to it via a Closure:
+
+```php
+$di->set(LoggerA::class, fn(Container $c) => $c->get(FileLogger::class));
+$di->set(LoggerB::class, fn(Container $c) => $c->get(FileLogger::class));
+// both now resolve to the same FileLogger singleton
+```
+
 ## Commands
 
 ### Development
