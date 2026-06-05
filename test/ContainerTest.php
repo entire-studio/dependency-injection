@@ -11,6 +11,8 @@ use PHPUnit\Framework\TestCase;
 use stdClass;
 use EntireStudio\DependencyInjection\Test\Mocks\Base;
 use EntireStudio\DependencyInjection\Test\Mocks\Beer;
+use EntireStudio\DependencyInjection\Test\Mocks\Bread;
+use EntireStudio\DependencyInjection\Test\Mocks\Buffet;
 use EntireStudio\DependencyInjection\Test\Mocks\Cocktail;
 use EntireStudio\DependencyInjection\Test\Mocks\ConcreteBase;
 use EntireStudio\DependencyInjection\Test\Mocks\D;
@@ -22,6 +24,7 @@ use EntireStudio\DependencyInjection\Test\Mocks\Insulation;
 use EntireStudio\DependencyInjection\Test\Mocks\Lettuce;
 use EntireStudio\DependencyInjection\Test\Mocks\OliveOil;
 use EntireStudio\DependencyInjection\Test\Mocks\Pizza;
+use EntireStudio\DependencyInjection\Test\Mocks\Pizzeria;
 use EntireStudio\DependencyInjection\Test\Mocks\Salad;
 use EntireStudio\DependencyInjection\Test\Mocks\Sandwich;
 use EntireStudio\DependencyInjection\Test\Mocks\Snack;
@@ -216,5 +219,24 @@ class ContainerTest extends TestCase
         $container = $this->getContainer();
         $container->set('a', 'a');
         $container->get('a');
+    }
+
+    public function testVariadicClassParamReceivesEmptyArray(): void
+    {
+        $container = $this->getContainer();
+        $pizzeria = $container->get(Pizzeria::class);
+
+        $this->assertInstanceOf(Pizzeria::class, $pizzeria);
+        $this->assertSame([], $pizzeria->extraCheeses);
+    }
+
+    public function testVariadicScalarParamReceivesEmptyArray(): void
+    {
+        $container = $this->getContainer();
+        $buffet = $container->get(Buffet::class);
+
+        $this->assertInstanceOf(Buffet::class, $buffet);
+        $this->assertInstanceOf(Bread::class, $buffet->bread);
+        $this->assertSame([], $buffet->names);
     }
 }

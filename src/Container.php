@@ -118,10 +118,13 @@ class Container implements ContainerInterface
         $this->resolving[$id] = true;
 
         try {
-            $dependencies = array_map(
-                fn(ReflectionParameter $param) => $this->resolveParameter($param, $id),
-                $parameters
-            );
+            $dependencies = [];
+            foreach ($parameters as $param) {
+                if ($param->isVariadic()) {
+                    continue;
+                }
+                $dependencies[] = $this->resolveParameter($param, $id);
+            }
         } finally {
             unset($this->resolving[$id]);
         }
