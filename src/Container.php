@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace EntireStudio\DependencyInjection;
 
 use Closure;
+use EntireStudio\DependencyInjection\Attributes\Inject;
 use EntireStudio\DependencyInjection\Exceptions\ContainerException;
 use EntireStudio\DependencyInjection\Exceptions\NotFoundException;
 use Psr\Container\ContainerExceptionInterface;
@@ -479,6 +480,26 @@ class Container implements ContainerInterface
     private function resolveParameter(ReflectionParameter $param, string $id): mixed
     {
         $name = $param->getName();
+
+        $injectAttrs = $param->getAttributes(Inject::class);
+        if ($injectAttrs !== []) {
+            $injectId = $injectAttrs[0]->newInstance()->id;
+            try {
+                return $this->get($injectId);
+            } catch (NotFoundExceptionInterface $e) {
+                throw new ContainerException(
+                    sprintf(
+                        'Failed to resolve class "%s" because #[Inject("%s")] target for param "%s" was not found.',
+                        $id,
+                        $injectId,
+                        $name
+                    ),
+                    0,
+                    $e
+                );
+            }
+        }
+
         $type = $param->getType();
 
         if (!$type) {

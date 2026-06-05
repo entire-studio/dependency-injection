@@ -26,6 +26,9 @@ use EntireStudio\DependencyInjection\Test\Mocks\ConcreteBase;
 use EntireStudio\DependencyInjection\Test\Mocks\D;
 use EntireStudio\DependencyInjection\Test\Mocks\HasMissingDep;
 use EntireStudio\DependencyInjection\Test\Mocks\Hen;
+use EntireStudio\DependencyInjection\Test\Mocks\InjectedClass;
+use EntireStudio\DependencyInjection\Test\Mocks\InjectedMissing;
+use EntireStudio\DependencyInjection\Test\Mocks\InjectedScalar;
 use EntireStudio\DependencyInjection\Test\Mocks\Loop1;
 use EntireStudio\DependencyInjection\Test\Mocks\GreatInsulation;
 use EntireStudio\DependencyInjection\Test\Mocks\Greeter;
@@ -828,5 +831,34 @@ class ContainerTest extends TestCase
 
         $container = $this->getContainer();
         $container->extend('unbound', fn(mixed $i) => $i);
+    }
+
+    public function testInjectAttributeOverridesScalarAutowiring(): void
+    {
+        $container = $this->getContainer();
+        $container->value('db.dsn', 'sqlite::memory:');
+
+        $instance = $container->get(InjectedScalar::class);
+
+        $this->assertSame('sqlite::memory:', $instance->dsn);
+    }
+
+    public function testInjectAttributeOverridesClassAutowiring(): void
+    {
+        $container = $this->getContainer();
+        $chosen = new ConcreteBase();
+        $container->value('chosen.base', $chosen);
+
+        $instance = $container->get(InjectedClass::class);
+
+        $this->assertSame($chosen, $instance->base);
+    }
+
+    public function testInjectAttributeMissingIdYieldsContainerException(): void
+    {
+        $this->expectException(ContainerException::class);
+
+        $container = $this->getContainer();
+        $container->get(InjectedMissing::class);
     }
 }
