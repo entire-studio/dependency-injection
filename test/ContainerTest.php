@@ -19,6 +19,7 @@ use EntireStudio\DependencyInjection\Test\Mocks\House;
 use EntireStudio\DependencyInjection\Test\Mocks\Insulation;
 use EntireStudio\DependencyInjection\Test\Mocks\Lettuce;
 use EntireStudio\DependencyInjection\Test\Mocks\OliveOil;
+use EntireStudio\DependencyInjection\Test\Mocks\Pizza;
 use EntireStudio\DependencyInjection\Test\Mocks\Salad;
 use EntireStudio\DependencyInjection\Test\Mocks\Sandwich;
 use EntireStudio\DependencyInjection\Test\Mocks\Snack;
@@ -85,6 +86,15 @@ class ContainerTest extends TestCase
 
         $container = $this->getContainer();
         $container->get(Sandwich::class);
+    }
+
+    public function testIntersectionThrowsException(): void
+    {
+        $this->expectException(ContainerException::class);
+        $this->expectExceptionMessage(' because of intersection type for param ');
+
+        $container = $this->getContainer();
+        $container->get(Pizza::class);
     }
 
     public function testOptional(): void

@@ -11,6 +11,7 @@ use Psr\Container\ContainerInterface;
 use Psr\Container\NotFoundExceptionInterface;
 use ReflectionClass;
 use ReflectionException;
+use ReflectionIntersectionType;
 use ReflectionNamedType;
 use ReflectionParameter;
 use ReflectionUnionType;
@@ -107,6 +108,16 @@ class Container implements ContainerInterface
                     throw new ContainerException(
                         sprintf(
                             'Failed to resolve class "%s" because of union type for param "%s".',
+                            $id,
+                            $name
+                        )
+                    );
+                }
+
+                if ($type instanceof ReflectionIntersectionType) {
+                    throw new ContainerException(
+                        sprintf(
+                            'Failed to resolve class "%s" because of intersection type for param "%s".',
                             $id,
                             $name
                         )
