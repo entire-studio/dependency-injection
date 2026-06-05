@@ -26,6 +26,7 @@ use EntireStudio\DependencyInjection\Test\Mocks\HasMissingDep;
 use EntireStudio\DependencyInjection\Test\Mocks\Hen;
 use EntireStudio\DependencyInjection\Test\Mocks\Loop1;
 use EntireStudio\DependencyInjection\Test\Mocks\GreatInsulation;
+use EntireStudio\DependencyInjection\Test\Mocks\Greeter;
 use EntireStudio\DependencyInjection\Test\Mocks\House;
 use EntireStudio\DependencyInjection\Test\Mocks\Insulation;
 use EntireStudio\DependencyInjection\Test\Mocks\Lettuce;
@@ -589,5 +590,60 @@ class ContainerTest extends TestCase
         $container->unset('\\foo');
 
         $this->assertFalse($container->has('foo'));
+    }
+
+    public function testCallClosureAutowiresArguments(): void
+    {
+        $container = $this->getContainer();
+        $result = $container->call(fn(Bread $b) => $b::class);
+
+        $this->assertSame(Bread::class, $result);
+    }
+
+    public function testCallClosureWithExtraArgsOverridesAutowiring(): void
+    {
+        $container = $this->getContainer();
+        $result = $container->call(
+            fn(Bread $b, string $who = 'world') => $who,
+            ['who' => 'tomek'],
+        );
+
+        $this->assertSame('tomek', $result);
+    }
+
+    public function testCallObjectMethod(): void
+    {
+        $container = $this->getContainer();
+        $greeter = new Greeter();
+
+        $result = $container->call([$greeter, 'greet'], ['who' => 'planet']);
+
+        $this->assertSame('hello planet with ' . Bread::class, $result);
+    }
+
+    public function testCallStaticMethodViaArrayCallable(): void
+    {
+        $container = $this->getContainer();
+        $result = $container->call([Greeter::class, 'staticGreet']);
+
+        $this->assertSame('static hello ' . Bread::class, $result);
+    }
+
+    public function testCallStaticMethodViaStringCallable(): void
+    {
+        $container = $this->getContainer();
+        $result = $container->call(Greeter::class . '::staticGreet');
+
+        $this->assertSame('static hello ' . Bread::class, $result);
+    }
+
+    public function testCallInvokableObject(): void
+    {
+        $container = $this->getContainer();
+        $greeter = new Greeter();
+
+        $result = $container->call($greeter);
+
+        $this->assertSame('invoked with ' . Bread::class, $result);
     }
 }

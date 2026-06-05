@@ -12,6 +12,7 @@ use Psr\Container\ContainerInterface;
 use Psr\Container\NotFoundExceptionInterface;
 use ReflectionClass;
 use ReflectionException;
+use ReflectionFunction;
 use ReflectionIntersectionType;
 use ReflectionNamedType;
 use ReflectionParameter;
@@ -176,6 +177,40 @@ class Container implements ContainerInterface
         $this->resolving = [];
         $this->reflectionCache = [];
         $this->registerSelf();
+    }
+
+    /**
+     * Invoke any callable with autowired arguments. Pass overrides keyed by
+     * parameter name in $args; remaining parameters are resolved via the same
+     * rules as constructor autowiring. Variadic parameters are skipped.
+     *
+     * Accepts every PHP callable form: Closure, [object, 'method'],
+     * [class-string, 'method'] (static), 'Class::method', invokable objects.
+     *
+     * @param array<string, mixed> $args
+     * @throws ContainerExceptionInterface
+     * @throws NotFoundExceptionInterface
+     */
+    public function call(callable $callable, array $args = []): mixed
+    {
+        $closure = Closure::fromCallable($callable);
+        $reflection = new ReflectionFunction($closure);
+        $context = $reflection->getName();
+
+        $resolved = [];
+        foreach ($reflection->getParameters() as $param) {
+            if ($param->isVariadic()) {
+                continue;
+            }
+            $name = $param->getName();
+            if (array_key_exists($name, $args)) {
+                $resolved[] = $args[$name];
+                continue;
+            }
+            $resolved[] = $this->resolveParameter($param, $context);
+        }
+
+        return $closure(...$resolved);
     }
 
     private function cache(string $id, mixed $instance): mixed
