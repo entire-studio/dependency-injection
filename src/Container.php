@@ -41,6 +41,7 @@ class Container implements ContainerInterface
      * @return ($id is class-string<T> ? T : mixed)
      * @throws ContainerExceptionInterface
      * @throws NotFoundExceptionInterface
+     * @throws ReflectionException
      */
     public function get(string $id): mixed
     {
@@ -80,12 +81,23 @@ class Container implements ContainerInterface
         return isset($this->entries[$id]);
     }
 
+    /**
+     * Register a binding. The concrete may be:
+     *  - a class-string to alias to (also followed transitively via further set() calls), or
+     *  - a Closure called with the container, whose return value is cached as a singleton.
+     *
+     * Re-registering clears any previously cached instance for this id.
+     */
     public function set(string $id, Closure|string $concrete): void
     {
         $this->entries[$id] = $concrete;
         unset($this->instances[$id], $this->factories[$id]);
     }
 
+    /**
+     * Register a factory binding. Unlike set() with a Closure, the result of each
+     * get($id) is NOT cached — every call invokes the factory and returns a new instance.
+     */
     public function factory(string $id, Closure $factory): void
     {
         $this->entries[$id] = $factory;
