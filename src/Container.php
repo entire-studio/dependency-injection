@@ -35,7 +35,14 @@ class Container implements ContainerInterface
     {
     }
 
-    public function get(string $id)
+    /**
+     * @template T of object
+     * @param class-string<T>|string $id
+     * @return ($id is class-string<T> ? T : mixed)
+     * @throws ContainerExceptionInterface
+     * @throws NotFoundExceptionInterface
+     */
+    public function get(string $id): mixed
     {
         if (array_key_exists($id, $this->instances)) {
             return $this->instances[$id];
