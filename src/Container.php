@@ -39,6 +39,9 @@ class Container implements ContainerInterface
     /** @var array<string, list<array{method: string, args: array<string, mixed>}>> */
     private array $methodInjections = [];
 
+    /** @var array<string, list<string>> */
+    private array $tags = [];
+
     public function __construct()
     {
         $this->registerSelf();
@@ -172,6 +175,13 @@ class Container implements ContainerInterface
             $this->reflectionCache[$id],
             $this->methodInjections[$id],
         );
+
+        foreach ($this->tags as $tag => $taggedIds) {
+            $this->tags[$tag] = array_values(array_filter(
+                $taggedIds,
+                fn(string $taggedId): bool => $taggedId !== $id,
+            ));
+        }
     }
 
     /**
@@ -186,7 +196,48 @@ class Container implements ContainerInterface
         $this->resolving = [];
         $this->reflectionCache = [];
         $this->methodInjections = [];
+        $this->tags = [];
         $this->registerSelf();
+    }
+
+    /**
+     * Attach a tag to an entry. Multiple tags per id allowed; duplicate
+     * (id, tag) pairs are ignored.
+     */
+    public function tag(string $id, string $tag): void
+    {
+        $id = $this->normalize($id);
+        if (!in_array($id, $this->tags[$tag] ?? [], true)) {
+            $this->tags[$tag][] = $id;
+        }
+    }
+
+    /**
+     * Detach a tag from an entry. No-op if the pair isn't tagged.
+     */
+    public function untag(string $id, string $tag): void
+    {
+        $id = $this->normalize($id);
+        if (!isset($this->tags[$tag])) {
+            return;
+        }
+        $this->tags[$tag] = array_values(array_filter(
+            $this->tags[$tag],
+            fn(string $taggedId): bool => $taggedId !== $id,
+        ));
+    }
+
+    /**
+     * Resolve every id with this tag, in registration order.
+     *
+     * @return list<mixed>
+     */
+    public function getTagged(string $tag): array
+    {
+        return array_map(
+            fn(string $id): mixed => $this->get($id),
+            $this->tags[$tag] ?? [],
+        );
     }
 
     /**

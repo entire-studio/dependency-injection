@@ -16,6 +16,7 @@ use EntireStudio\DependencyInjection\Test\Mocks\Base;
 use EntireStudio\DependencyInjection\Test\Mocks\Beer;
 use EntireStudio\DependencyInjection\Test\Mocks\Bread;
 use EntireStudio\DependencyInjection\Test\Mocks\Buffet;
+use EntireStudio\DependencyInjection\Test\Mocks\Cheese;
 use EntireStudio\DependencyInjection\Test\Mocks\Chicken;
 use EntireStudio\DependencyInjection\Test\Mocks\Cocktail;
 use EntireStudio\DependencyInjection\Test\Mocks\Color;
@@ -678,5 +679,91 @@ class ContainerTest extends TestCase
         $configurable = $container->get(Configurable::class);
 
         $this->assertSame(['label:custom'], $configurable->log);
+    }
+
+    public function testTagGroupsServicesByLabel(): void
+    {
+        $container = $this->getContainer();
+        $container->tag(Bread::class, 'food');
+        $container->tag(Cheese::class, 'food');
+
+        $tagged = $container->getTagged('food');
+
+        $this->assertCount(2, $tagged);
+        $this->assertInstanceOf(Bread::class, $tagged[0]);
+        $this->assertInstanceOf(Cheese::class, $tagged[1]);
+    }
+
+    public function testTagReturnsInstancesInRegistrationOrder(): void
+    {
+        $container = $this->getContainer();
+        $container->tag(Cheese::class, 'food');
+        $container->tag(Bread::class, 'food');
+
+        $tagged = $container->getTagged('food');
+
+        $this->assertInstanceOf(Cheese::class, $tagged[0]);
+        $this->assertInstanceOf(Bread::class, $tagged[1]);
+    }
+
+    public function testTagSupportsMultipleTagsPerService(): void
+    {
+        $container = $this->getContainer();
+        $container->tag(Bread::class, 'food');
+        $container->tag(Bread::class, 'carb');
+
+        $this->assertCount(1, $container->getTagged('food'));
+        $this->assertCount(1, $container->getTagged('carb'));
+    }
+
+    public function testDuplicateTagRegistrationIsIgnored(): void
+    {
+        $container = $this->getContainer();
+        $container->tag(Bread::class, 'food');
+        $container->tag(Bread::class, 'food');
+
+        $this->assertCount(1, $container->getTagged('food'));
+    }
+
+    public function testUntagRemovesAssociation(): void
+    {
+        $container = $this->getContainer();
+        $container->tag(Bread::class, 'food');
+        $container->tag(Cheese::class, 'food');
+
+        $container->untag(Bread::class, 'food');
+
+        $tagged = $container->getTagged('food');
+        $this->assertCount(1, $tagged);
+        $this->assertInstanceOf(Cheese::class, $tagged[0]);
+    }
+
+    public function testGetTaggedReturnsEmptyForUnknownTag(): void
+    {
+        $container = $this->getContainer();
+
+        $this->assertSame([], $container->getTagged('nope'));
+    }
+
+    public function testUnsetAlsoRemovesFromAllTags(): void
+    {
+        $container = $this->getContainer();
+        $container->tag(Bread::class, 'food');
+        $container->tag(Bread::class, 'carb');
+
+        $container->unset(Bread::class);
+
+        $this->assertSame([], $container->getTagged('food'));
+        $this->assertSame([], $container->getTagged('carb'));
+    }
+
+    public function testClearWipesAllTags(): void
+    {
+        $container = $this->getContainer();
+        $container->tag(Bread::class, 'food');
+
+        $container->clear();
+
+        $this->assertSame([], $container->getTagged('food'));
     }
 }
