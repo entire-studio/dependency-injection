@@ -43,6 +43,7 @@ use EntireStudio\DependencyInjection\Test\Mocks\Sandwich;
 use EntireStudio\DependencyInjection\Test\Mocks\SandwichWithDefault;
 use EntireStudio\DependencyInjection\Test\Mocks\Snack;
 use EntireStudio\DependencyInjection\Test\Mocks\Vodka;
+use EntireStudio\DependencyInjection\Test\Mocks\Wrapper;
 
 class ContainerTest extends TestCase
 {
@@ -765,5 +766,67 @@ class ContainerTest extends TestCase
         $container->clear();
 
         $this->assertSame([], $container->getTagged('food'));
+    }
+
+    public function testExtendWrapsResolvedInstance(): void
+    {
+        $container = $this->getContainer();
+        $container->set('logger', Bread::class);
+        $container->extend('logger', fn(Bread $inner) => new Wrapper('only', $inner));
+
+        $result = $container->get('logger');
+
+        $this->assertInstanceOf(Wrapper::class, $result);
+        $this->assertInstanceOf(Bread::class, $result->inner);
+    }
+
+    public function testExtendStacksInRegistrationOrder(): void
+    {
+        $container = $this->getContainer();
+        $container->set('thing', Bread::class);
+        $container->extend('thing', fn(object $inner) => new Wrapper('first', $inner));
+        $container->extend('thing', fn(Wrapper $inner) => new Wrapper('second', $inner));
+
+        $result = $container->get('thing');
+
+        $this->assertInstanceOf(Wrapper::class, $result);
+        $this->assertSame('second', $result->layer);
+        $this->assertInstanceOf(Wrapper::class, $result->inner);
+        $this->assertSame('first', $result->inner->layer);
+        $this->assertInstanceOf(Bread::class, $result->inner->inner);
+    }
+
+    public function testExtendOnFactoryRunsPerCall(): void
+    {
+        $container = $this->getContainer();
+        $counter = 0;
+        $container->factory('thing', fn() => new Bread());
+        $container->extend('thing', function (Bread $inner) use (&$counter) {
+            $counter++;
+            return $inner;
+        });
+
+        $container->get('thing');
+        $container->get('thing');
+
+        $this->assertSame(2, $counter);
+    }
+
+    public function testExtendOnSingletonCachesDecoratedResult(): void
+    {
+        $container = $this->getContainer();
+        $container->set('thing', Bread::class);
+        $container->extend('thing', fn(Bread $inner) => new Wrapper('only', $inner));
+
+        $this->assertSame($container->get('thing'), $container->get('thing'));
+    }
+
+    public function testExtendWithoutBindingThrows(): void
+    {
+        $this->expectException(ContainerException::class);
+        $this->expectExceptionMessage('Cannot extend "unbound": no binding registered.');
+
+        $container = $this->getContainer();
+        $container->extend('unbound', fn(mixed $i) => $i);
     }
 }

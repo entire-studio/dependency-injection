@@ -42,6 +42,9 @@ class Container implements ContainerInterface
     /** @var array<string, list<string>> */
     private array $tags = [];
 
+    /** @var array<string, list<Closure>> */
+    private array $decorators = [];
+
     public function __construct()
     {
         $this->registerSelf();
@@ -174,6 +177,7 @@ class Container implements ContainerInterface
             $this->factories[$id],
             $this->reflectionCache[$id],
             $this->methodInjections[$id],
+            $this->decorators[$id],
         );
 
         foreach ($this->tags as $tag => $taggedIds) {
@@ -197,7 +201,30 @@ class Container implements ContainerInterface
         $this->reflectionCache = [];
         $this->methodInjections = [];
         $this->tags = [];
+        $this->decorators = [];
         $this->registerSelf();
+    }
+
+    /**
+     * Wrap an already-registered binding. The decorator receives the previously
+     * resolved instance and the container, and returns the replacement instance.
+     * Multiple extend() calls stack in registration order — the last registered
+     * decorator is the outermost wrapper.
+     *
+     * @throws ContainerException when no entry has been registered for $id
+     */
+    public function extend(string $id, Closure $decorator): void
+    {
+        $id = $this->normalize($id);
+
+        if (!isset($this->entries[$id])) {
+            throw new ContainerException(
+                sprintf('Cannot extend "%s": no binding registered.', $id)
+            );
+        }
+
+        $this->decorators[$id][] = $decorator;
+        unset($this->instances[$id]);
     }
 
     /**
@@ -289,10 +316,19 @@ class Container implements ContainerInterface
 
     private function cache(string $id, mixed $instance): mixed
     {
+        $instance = $this->applyDecorators($id, $instance);
         $this->applyMethodInjections($id, $instance);
 
         if (!isset($this->factories[$id])) {
             $this->instances[$id] = $instance;
+        }
+        return $instance;
+    }
+
+    private function applyDecorators(string $id, mixed $instance): mixed
+    {
+        foreach ($this->decorators[$id] ?? [] as $decorator) {
+            $instance = $decorator($instance, $this);
         }
         return $instance;
     }
