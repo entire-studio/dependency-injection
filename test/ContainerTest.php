@@ -9,6 +9,7 @@ use EntireStudio\DependencyInjection\Exceptions\ContainerException;
 use EntireStudio\DependencyInjection\Exceptions\NotFoundException;
 use PHPUnit\Framework\TestCase;
 use stdClass;
+use EntireStudio\DependencyInjection\Test\Mocks\AbstractInsulation;
 use EntireStudio\DependencyInjection\Test\Mocks\Base;
 use EntireStudio\DependencyInjection\Test\Mocks\Beer;
 use EntireStudio\DependencyInjection\Test\Mocks\Bread;
@@ -65,12 +66,30 @@ class ContainerTest extends TestCase
     public function testAutowireChainedClassesInterfacesThrowExceptionWhenNotMapped(): void
     {
         $this->expectException(ContainerException::class);
-        $this->expectExceptionMessage(' is not instantiable.');
+        $this->expectExceptionMessage('No binding registered for interface ');
 
         $container = $this->getContainer();
-        $house = $container->get(House::class);
+        $container->get(House::class);
+    }
 
-        var_dump($house);
+    public function testUnboundInterfaceThrowsSpecificException(): void
+    {
+        $this->expectException(ContainerException::class);
+        $this->expectExceptionMessage('No binding registered for interface "' . Base::class . '".');
+
+        $container = $this->getContainer();
+        $container->get(Base::class);
+    }
+
+    public function testUnboundAbstractClassThrowsSpecificException(): void
+    {
+        $this->expectException(ContainerException::class);
+        $this->expectExceptionMessage(
+            'No binding registered for abstract class "' . AbstractInsulation::class . '".'
+        );
+
+        $container = $this->getContainer();
+        $container->get(AbstractInsulation::class);
     }
 
     public function testAutowireChainedClassesInterfaces(): void

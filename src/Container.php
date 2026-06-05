@@ -94,6 +94,24 @@ class Container implements ContainerInterface
 
         $reflectionClass = new ReflectionClass($id);
 
+        if ($reflectionClass->isInterface()) {
+            throw new ContainerException(
+                sprintf(
+                    'No binding registered for interface "%s".',
+                    $id
+                )
+            );
+        }
+
+        if ($reflectionClass->isAbstract()) {
+            throw new ContainerException(
+                sprintf(
+                    'No binding registered for abstract class "%s".',
+                    $id
+                )
+            );
+        }
+
         if (!$reflectionClass->isInstantiable()) {
             throw new ContainerException(
                 sprintf(
