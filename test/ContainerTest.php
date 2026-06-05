@@ -18,6 +18,8 @@ use EntireStudio\DependencyInjection\Test\Mocks\Bread;
 use EntireStudio\DependencyInjection\Test\Mocks\Buffet;
 use EntireStudio\DependencyInjection\Test\Mocks\Chicken;
 use EntireStudio\DependencyInjection\Test\Mocks\Cocktail;
+use EntireStudio\DependencyInjection\Test\Mocks\Color;
+use EntireStudio\DependencyInjection\Test\Mocks\Loggable;
 use EntireStudio\DependencyInjection\Test\Mocks\ConcreteBase;
 use EntireStudio\DependencyInjection\Test\Mocks\D;
 use EntireStudio\DependencyInjection\Test\Mocks\HasMissingDep;
@@ -511,5 +513,23 @@ class ContainerTest extends TestCase
 
         $container = $this->getContainer();
         $container->get(ParentReferencing::class);
+    }
+
+    public function testEnumThrowsSpecificException(): void
+    {
+        $this->expectException(ContainerException::class);
+        $this->expectExceptionMessage('Cannot autowire enum "' . Color::class . '"');
+
+        $container = $this->getContainer();
+        $container->get(Color::class);
+    }
+
+    public function testTraitThrowsSpecificException(): void
+    {
+        $this->expectException(ContainerException::class);
+        $this->expectExceptionMessage('Cannot autowire trait "' . Loggable::class . '"');
+
+        $container = $this->getContainer();
+        $container->get(Loggable::class);
     }
 }

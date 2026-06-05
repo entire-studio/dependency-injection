@@ -175,7 +175,7 @@ class Container implements ContainerInterface
      */
     private function resolve(string $id): object
     {
-        if (!class_exists($id) && !interface_exists($id)) {
+        if (!class_exists($id) && !interface_exists($id) && !trait_exists($id)) {
             throw new NotFoundException(
                 sprintf(
                     'Class "%s" does not exist.',
@@ -201,6 +201,24 @@ class Container implements ContainerInterface
             throw new ContainerException(
                 sprintf(
                     'No binding registered for interface "%s".',
+                    $id
+                )
+            );
+        }
+
+        if ($reflectionClass->isEnum()) {
+            throw new ContainerException(
+                sprintf(
+                    'Cannot autowire enum "%s" — register a binding.',
+                    $id
+                )
+            );
+        }
+
+        if ($reflectionClass->isTrait()) {
+            throw new ContainerException(
+                sprintf(
+                    'Cannot autowire trait "%s" — traits cannot be instantiated.',
                     $id
                 )
             );
