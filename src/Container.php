@@ -32,6 +32,9 @@ class Container implements ContainerInterface
     /** @var array<string, true> */
     private array $resolving = [];
 
+    /** @var array<string, ReflectionClass<object>> */
+    private array $reflectionCache = [];
+
     public function __construct()
     {
         $this->registerSelf();
@@ -158,7 +161,7 @@ class Container implements ContainerInterface
     {
         $id = $this->normalize($id);
 
-        unset($this->entries[$id], $this->instances[$id], $this->factories[$id]);
+        unset($this->entries[$id], $this->instances[$id], $this->factories[$id], $this->reflectionCache[$id]);
     }
 
     /**
@@ -171,6 +174,7 @@ class Container implements ContainerInterface
         $this->instances = [];
         $this->factories = [];
         $this->resolving = [];
+        $this->reflectionCache = [];
         $this->registerSelf();
     }
 
@@ -213,7 +217,7 @@ class Container implements ContainerInterface
         }
 
         /** @var class-string $id */
-        $reflectionClass = new ReflectionClass($id);
+        $reflectionClass = $this->reflectionCache[$id] ??= new ReflectionClass($id);
 
         if ($reflectionClass->isInterface()) {
             throw new ContainerException(
