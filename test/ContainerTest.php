@@ -9,6 +9,7 @@ use EntireStudio\DependencyInjection\Exceptions\ContainerException;
 use EntireStudio\DependencyInjection\Exceptions\NotFoundException;
 use PHPUnit\Framework\TestCase;
 use Psr\Container\ContainerInterface;
+use RuntimeException;
 use stdClass;
 use EntireStudio\DependencyInjection\Test\Mocks\AbstractInsulation;
 use EntireStudio\DependencyInjection\Test\Mocks\Base;
@@ -435,5 +436,38 @@ class ContainerTest extends TestCase
 
         $this->assertSame($container, $container->get(ContainerInterface::class));
         $this->assertSame($container, $container->get(Container::class));
+    }
+
+    public function testClosureRuntimeExceptionIsWrappedInContainerException(): void
+    {
+        $container = $this->getContainer();
+        $container->set(Bread::class, function (): never {
+            throw new RuntimeException('boom');
+        });
+
+        try {
+            $container->get(Bread::class);
+            $this->fail('Expected ContainerException');
+        } catch (ContainerException $e) {
+            $this->assertStringContainsString('Closure binding for', $e->getMessage());
+            $this->assertStringContainsString('boom', $e->getMessage());
+            $this->assertInstanceOf(RuntimeException::class, $e->getPrevious());
+        }
+    }
+
+    public function testClosureContainerExceptionPassesThroughUnwrapped(): void
+    {
+        $container = $this->getContainer();
+        $original = new ContainerException('original');
+        $container->set(Bread::class, function () use ($original): never {
+            throw $original;
+        });
+
+        try {
+            $container->get(Bread::class);
+            $this->fail('Expected ContainerException');
+        } catch (ContainerException $e) {
+            $this->assertSame($original, $e);
+        }
     }
 }

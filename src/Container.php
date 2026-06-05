@@ -16,6 +16,7 @@ use ReflectionIntersectionType;
 use ReflectionNamedType;
 use ReflectionParameter;
 use ReflectionUnionType;
+use Throwable;
 
 class Container implements ContainerInterface
 {
@@ -73,7 +74,22 @@ class Container implements ContainerInterface
             $entry = $this->entries[$id];
 
             if ($entry instanceof Closure) {
-                $instance = $entry($this);
+                try {
+                    $instance = $entry($this);
+                } catch (ContainerExceptionInterface | NotFoundExceptionInterface $e) {
+                    throw $e;
+                } catch (Throwable $e) {
+                    throw new ContainerException(
+                        sprintf(
+                            'Closure binding for "%s" threw %s: %s',
+                            $originalId,
+                            $e::class,
+                            $e->getMessage()
+                        ),
+                        0,
+                        $e
+                    );
+                }
                 return $this->cache($originalId, $instance);
             }
 
