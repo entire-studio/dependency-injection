@@ -19,6 +19,7 @@ use EntireStudio\DependencyInjection\Test\Mocks\Buffet;
 use EntireStudio\DependencyInjection\Test\Mocks\Chicken;
 use EntireStudio\DependencyInjection\Test\Mocks\Cocktail;
 use EntireStudio\DependencyInjection\Test\Mocks\Color;
+use EntireStudio\DependencyInjection\Test\Mocks\Configurable;
 use EntireStudio\DependencyInjection\Test\Mocks\Loggable;
 use EntireStudio\DependencyInjection\Test\Mocks\ConcreteBase;
 use EntireStudio\DependencyInjection\Test\Mocks\D;
@@ -645,5 +646,37 @@ class ContainerTest extends TestCase
         $result = $container->call($greeter);
 
         $this->assertSame('invoked with ' . Bread::class, $result);
+    }
+
+    public function testSingleSetterIsInvokedAfterConstruction(): void
+    {
+        $container = $this->getContainer();
+        $container->injectMethod(Configurable::class, 'setBread');
+
+        $configurable = $container->get(Configurable::class);
+
+        $this->assertInstanceOf(Bread::class, $configurable->bread);
+        $this->assertSame(['bread'], $configurable->log);
+    }
+
+    public function testMultipleSettersAreInvokedInRegistrationOrder(): void
+    {
+        $container = $this->getContainer();
+        $container->injectMethod(Configurable::class, 'setLabel');
+        $container->injectMethod(Configurable::class, 'setBread');
+
+        $configurable = $container->get(Configurable::class);
+
+        $this->assertSame(['label:default', 'bread'], $configurable->log);
+    }
+
+    public function testSetterArgsOverrideAutowiring(): void
+    {
+        $container = $this->getContainer();
+        $container->injectMethod(Configurable::class, 'setLabel', ['label' => 'custom']);
+
+        $configurable = $container->get(Configurable::class);
+
+        $this->assertSame(['label:custom'], $configurable->log);
     }
 }

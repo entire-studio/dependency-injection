@@ -36,6 +36,9 @@ class Container implements ContainerInterface
     /** @var array<string, ReflectionClass<object>> */
     private array $reflectionCache = [];
 
+    /** @var array<string, list<array{method: string, args: array<string, mixed>}>> */
+    private array $methodInjections = [];
+
     public function __construct()
     {
         $this->registerSelf();
@@ -162,7 +165,13 @@ class Container implements ContainerInterface
     {
         $id = $this->normalize($id);
 
-        unset($this->entries[$id], $this->instances[$id], $this->factories[$id], $this->reflectionCache[$id]);
+        unset(
+            $this->entries[$id],
+            $this->instances[$id],
+            $this->factories[$id],
+            $this->reflectionCache[$id],
+            $this->methodInjections[$id],
+        );
     }
 
     /**
@@ -176,7 +185,21 @@ class Container implements ContainerInterface
         $this->factories = [];
         $this->resolving = [];
         $this->reflectionCache = [];
+        $this->methodInjections = [];
         $this->registerSelf();
+    }
+
+    /**
+     * Register a method to be invoked on the instance after construction,
+     * with arguments autowired (and overridable via $args by parameter name).
+     * Multiple injectMethod() calls for the same id stack in registration order.
+     *
+     * @param array<string, mixed> $args
+     */
+    public function injectMethod(string $id, string $method, array $args = []): void
+    {
+        $id = $this->normalize($id);
+        $this->methodInjections[$id][] = ['method' => $method, 'args' => $args];
     }
 
     /**
@@ -215,10 +238,34 @@ class Container implements ContainerInterface
 
     private function cache(string $id, mixed $instance): mixed
     {
+        $this->applyMethodInjections($id, $instance);
+
         if (!isset($this->factories[$id])) {
             $this->instances[$id] = $instance;
         }
         return $instance;
+    }
+
+    private function applyMethodInjections(string $id, mixed $instance): void
+    {
+        if (!is_object($instance) || !isset($this->methodInjections[$id])) {
+            return;
+        }
+
+        foreach ($this->methodInjections[$id] as $injection) {
+            $method = $injection['method'];
+            if (!method_exists($instance, $method)) {
+                throw new ContainerException(
+                    sprintf(
+                        'Method injection for "%s" failed: method "%s" does not exist on %s.',
+                        $id,
+                        $method,
+                        $instance::class
+                    )
+                );
+            }
+            $this->call([$instance, $method], $injection['args']);
+        }
     }
 
     private function normalize(string $id): string
