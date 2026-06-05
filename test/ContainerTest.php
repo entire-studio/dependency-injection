@@ -10,6 +10,8 @@ use EntireStudio\DependencyInjection\Exceptions\NotFoundException;
 use PHPUnit\Framework\TestCase;
 use stdClass;
 use EntireStudio\DependencyInjection\Test\Mocks\Base;
+use EntireStudio\DependencyInjection\Test\Mocks\Beer;
+use EntireStudio\DependencyInjection\Test\Mocks\Cocktail;
 use EntireStudio\DependencyInjection\Test\Mocks\ConcreteBase;
 use EntireStudio\DependencyInjection\Test\Mocks\D;
 use EntireStudio\DependencyInjection\Test\Mocks\GreatInsulation;
@@ -20,6 +22,7 @@ use EntireStudio\DependencyInjection\Test\Mocks\OliveOil;
 use EntireStudio\DependencyInjection\Test\Mocks\Salad;
 use EntireStudio\DependencyInjection\Test\Mocks\Sandwich;
 use EntireStudio\DependencyInjection\Test\Mocks\Snack;
+use EntireStudio\DependencyInjection\Test\Mocks\Vodka;
 
 class ContainerTest extends TestCase
 {
@@ -114,5 +117,32 @@ class ContainerTest extends TestCase
 
         $container = $this->getContainer();
         $container->get(Snack::class);
+    }
+
+    public function testBuiltinParamWithDefaultUsesDefault(): void
+    {
+        $container = $this->getContainer();
+        $beer = $container->get(Beer::class);
+
+        $this->assertInstanceOf(Beer::class, $beer);
+        $this->assertSame(5, $beer->abv);
+    }
+
+    public function testNullableBuiltinParamWithoutDefaultBecomesNull(): void
+    {
+        $container = $this->getContainer();
+        $cocktail = $container->get(Cocktail::class);
+
+        $this->assertInstanceOf(Cocktail::class, $cocktail);
+        $this->assertNull($cocktail->name);
+    }
+
+    public function testRequiredBuiltinParamThrowsException(): void
+    {
+        $this->expectException(ContainerException::class);
+        $this->expectExceptionMessage('has built-in type "int" and no default value');
+
+        $container = $this->getContainer();
+        $container->get(Vodka::class);
     }
 }

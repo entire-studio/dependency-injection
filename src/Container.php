@@ -116,6 +116,23 @@ class Container implements ContainerInterface
                 if ($type instanceof ReflectionNamedType && !$type->isBuiltin()) {
                     return $this->get($type->getName());
                 }
+
+                if ($param->isDefaultValueAvailable()) {
+                    return $param->getDefaultValue();
+                }
+
+                if ($param->allowsNull()) {
+                    return null;
+                }
+
+                throw new ContainerException(
+                    sprintf(
+                        'Failed to resolve class "%s" because param "%s" has built-in type "%s" and no default value.',
+                        $id,
+                        $name,
+                        $type instanceof ReflectionNamedType ? $type->getName() : (string) $type
+                    )
+                );
             },
             $parameters
         );
