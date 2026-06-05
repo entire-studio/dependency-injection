@@ -28,6 +28,8 @@ use EntireStudio\DependencyInjection\Test\Mocks\House;
 use EntireStudio\DependencyInjection\Test\Mocks\Insulation;
 use EntireStudio\DependencyInjection\Test\Mocks\Lettuce;
 use EntireStudio\DependencyInjection\Test\Mocks\NeedsContainer;
+use EntireStudio\DependencyInjection\Test\Mocks\ParentReferencing;
+use EntireStudio\DependencyInjection\Test\Mocks\SelfReferencing;
 use EntireStudio\DependencyInjection\Test\Mocks\OliveOil;
 use EntireStudio\DependencyInjection\Test\Mocks\Pizza;
 use EntireStudio\DependencyInjection\Test\Mocks\Pizzeria;
@@ -491,5 +493,23 @@ class ContainerTest extends TestCase
 
         $container = $this->getContainer();
         $container->get('NonExistentTopLevelClass');
+    }
+
+    public function testSelfTypeHintThrowsDescriptiveException(): void
+    {
+        $this->expectException(ContainerException::class);
+        $this->expectExceptionMessage('Cannot autowire "self" type hint');
+
+        $container = $this->getContainer();
+        $container->get(SelfReferencing::class);
+    }
+
+    public function testParentTypeHintThrowsDescriptiveException(): void
+    {
+        $this->expectException(ContainerException::class);
+        $this->expectExceptionMessage('Cannot autowire "parent" type hint');
+
+        $container = $this->getContainer();
+        $container->get(ParentReferencing::class);
     }
 }

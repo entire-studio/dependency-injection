@@ -303,17 +303,30 @@ class Container implements ContainerInterface
         }
 
         if ($type instanceof ReflectionNamedType && !$type->isBuiltin()) {
+            $typeName = $type->getName();
+
+            if (in_array($typeName, ['self', 'parent', 'static'], true)) {
+                throw new ContainerException(
+                    sprintf(
+                        'Cannot autowire "%s" type hint for param "%s" of class "%s" — register a callable binding.',
+                        $typeName,
+                        $name,
+                        $id
+                    )
+                );
+            }
+
             if ($param->isDefaultValueAvailable()) {
                 return $param->getDefaultValue();
             }
             try {
-                return $this->get($type->getName());
+                return $this->get($typeName);
             } catch (NotFoundExceptionInterface $e) {
                 throw new ContainerException(
                     sprintf(
                         'Failed to resolve class "%s" because dependency "%s" for param "%s" was not found.',
                         $id,
-                        $type->getName(),
+                        $typeName,
                         $name
                     ),
                     0,
