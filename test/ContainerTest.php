@@ -305,4 +305,21 @@ class ContainerTest extends TestCase
 
         $this->assertNotSame($first, $second);
     }
+
+    public function testHasReturnsFalseForUnregisteredAutowirableClass(): void
+    {
+        $container = $this->getContainer();
+
+        $this->assertFalse($container->has(Bread::class));
+        $this->assertInstanceOf(Bread::class, $container->get(Bread::class));
+    }
+
+    public function testHasReturnsTrueOnlyForRegisteredEntries(): void
+    {
+        $container = $this->getContainer();
+        $container->set(Base::class, ConcreteBase::class);
+
+        $this->assertTrue($container->has(Base::class));
+        $this->assertFalse($container->has(ConcreteBase::class));
+    }
 }

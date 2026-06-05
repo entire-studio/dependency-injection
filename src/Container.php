@@ -37,7 +37,6 @@ class Container implements ContainerInterface
      * @return ($id is class-string<T> ? T : mixed)
      * @throws ContainerExceptionInterface
      * @throws NotFoundExceptionInterface
-     * @throws ReflectionException
      */
     public function get(string $id): mixed
     {
@@ -111,7 +110,6 @@ class Container implements ContainerInterface
 
     /**
      * @throws ContainerExceptionInterface
-     * @throws ReflectionException
      * @throws NotFoundExceptionInterface
      */
     private function resolve(string $id): object
@@ -168,7 +166,15 @@ class Container implements ContainerInterface
         $constructor = $reflectionClass->getConstructor();
 
         if (!$constructor || !$constructor->getParameters()) {
-            return $reflectionClass->newInstance();
+            try {
+                return $reflectionClass->newInstance();
+            } catch (ReflectionException $e) {
+                throw new ContainerException(
+                    sprintf('Failed to instantiate "%s": %s', $id, $e->getMessage()),
+                    0,
+                    $e
+                );
+            }
         }
 
         $this->resolving[$id] = true;
@@ -185,13 +191,20 @@ class Container implements ContainerInterface
             unset($this->resolving[$id]);
         }
 
-        return $reflectionClass->newInstanceArgs($dependencies);
+        try {
+            return $reflectionClass->newInstanceArgs($dependencies);
+        } catch (ReflectionException $e) {
+            throw new ContainerException(
+                sprintf('Failed to instantiate "%s": %s', $id, $e->getMessage()),
+                0,
+                $e
+            );
+        }
     }
 
     /**
      * @throws ContainerExceptionInterface
      * @throws NotFoundExceptionInterface
-     * @throws ReflectionException
      */
     private function resolveParameter(ReflectionParameter $param, string $id): mixed
     {

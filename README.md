@@ -74,6 +74,18 @@ $ php examples/basic.php
 ## Other examples
 See `examples/` for more examples.
 
+## PSR-11
+
+The container implements `Psr\Container\ContainerInterface` (psr/container ^2.0).
+
+- `get(string $id): mixed` — returns the entry. Throws `NotFoundExceptionInterface`
+  when no entry exists for `$id` (and `$id` isn't an instantiable class), or
+  `ContainerExceptionInterface` for any other failure during construction.
+- `has(string $id): bool` — returns true only for ids previously registered via
+  `set()` / `factory()`. Per the spec, `has() === false` does not preclude `get()`
+  from succeeding (autowiring may still resolve it), and `has() === true` does
+  not guarantee `get()` will not throw.
+
 ## Lifecycle
 
 By default, the container caches resolved instances — subsequent `get($id)` calls
