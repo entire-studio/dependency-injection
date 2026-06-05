@@ -560,4 +560,34 @@ class ContainerTest extends TestCase
 
         $this->assertSame($container->get('logger.a'), $container->get('logger.b'));
     }
+
+    public function testLeadingBackslashIsNormalizedAcrossSetAndGet(): void
+    {
+        $container = $this->getContainer();
+        $container->set('\\' . Base::class, ConcreteBase::class);
+
+        $this->assertTrue($container->has(Base::class));
+        $this->assertTrue($container->has('\\' . Base::class));
+        $this->assertInstanceOf(ConcreteBase::class, $container->get(Base::class));
+    }
+
+    public function testLeadingBackslashNormalizedInConcreteTarget(): void
+    {
+        $container = $this->getContainer();
+        $container->set(Base::class, '\\' . ConcreteBase::class);
+
+        $this->assertInstanceOf(ConcreteBase::class, $container->get(Base::class));
+    }
+
+    public function testLeadingBackslashNormalizedInUnsetAndValue(): void
+    {
+        $container = $this->getContainer();
+        $container->value('\\foo', 42);
+
+        $this->assertSame(42, $container->get('foo'));
+
+        $container->unset('\\foo');
+
+        $this->assertFalse($container->has('foo'));
+    }
 }

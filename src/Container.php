@@ -53,6 +53,8 @@ class Container implements ContainerInterface
      */
     public function get(string $id): mixed
     {
+        $id = $this->normalize($id);
+
         if (array_key_exists($id, $this->instances)) {
             return $this->instances[$id];
         }
@@ -101,6 +103,8 @@ class Container implements ContainerInterface
 
     public function has(string $id): bool
     {
+        $id = $this->normalize($id);
+
         return isset($this->entries[$id]) || array_key_exists($id, $this->instances);
     }
 
@@ -113,6 +117,9 @@ class Container implements ContainerInterface
      */
     public function set(string $id, Closure|string $concrete): void
     {
+        $id = $this->normalize($id);
+        $concrete = is_string($concrete) ? $this->normalize($concrete) : $concrete;
+
         $this->entries[$id] = $concrete;
         unset($this->instances[$id], $this->factories[$id]);
     }
@@ -123,6 +130,8 @@ class Container implements ContainerInterface
      */
     public function factory(string $id, Closure $factory): void
     {
+        $id = $this->normalize($id);
+
         $this->entries[$id] = $factory;
         $this->factories[$id] = true;
         unset($this->instances[$id]);
@@ -135,6 +144,8 @@ class Container implements ContainerInterface
      */
     public function value(string $id, mixed $value): void
     {
+        $id = $this->normalize($id);
+
         $this->instances[$id] = $value;
         unset($this->entries[$id], $this->factories[$id]);
     }
@@ -145,6 +156,8 @@ class Container implements ContainerInterface
      */
     public function unset(string $id): void
     {
+        $id = $this->normalize($id);
+
         unset($this->entries[$id], $this->instances[$id], $this->factories[$id]);
     }
 
@@ -167,6 +180,11 @@ class Container implements ContainerInterface
             $this->instances[$id] = $instance;
         }
         return $instance;
+    }
+
+    private function normalize(string $id): string
+    {
+        return ltrim($id, '\\');
     }
 
     /**
