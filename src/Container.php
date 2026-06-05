@@ -22,6 +22,12 @@ class Container implements ContainerInterface
     /** @var array<string, Closure|string> */
     private array $entries = [];
 
+    /** @var array<string, mixed> */
+    private array $instances = [];
+
+    /** @var array<string, true> */
+    private array $factories = [];
+
     /** @var array<string, true> */
     private array $resolving = [];
 
@@ -31,6 +37,11 @@ class Container implements ContainerInterface
 
     public function get(string $id)
     {
+        if (array_key_exists($id, $this->instances)) {
+            return $this->instances[$id];
+        }
+
+        $originalId = $id;
         $seen = [];
 
         while ($this->has($id)) {
@@ -47,13 +58,14 @@ class Container implements ContainerInterface
             $entry = $this->entries[$id];
 
             if ($entry instanceof Closure) {
-                return $entry($this);
+                $instance = $entry($this);
+                return $this->cache($originalId, $instance);
             }
 
             $id = $entry;
         }
 
-        return $this->resolve($id);
+        return $this->cache($originalId, $this->resolve($id));
     }
 
     public function has(string $id): bool
@@ -64,6 +76,22 @@ class Container implements ContainerInterface
     public function set(string $id, Closure|string $concrete): void
     {
         $this->entries[$id] = $concrete;
+        unset($this->instances[$id], $this->factories[$id]);
+    }
+
+    public function factory(string $id, Closure $factory): void
+    {
+        $this->entries[$id] = $factory;
+        $this->factories[$id] = true;
+        unset($this->instances[$id]);
+    }
+
+    private function cache(string $id, mixed $instance): mixed
+    {
+        if (!isset($this->factories[$id])) {
+            $this->instances[$id] = $instance;
+        }
+        return $instance;
     }
 
     /**

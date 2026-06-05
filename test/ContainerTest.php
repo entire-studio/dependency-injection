@@ -262,4 +262,47 @@ class ContainerTest extends TestCase
         $this->assertInstanceOf(Bread::class, $buffet->bread);
         $this->assertSame([], $buffet->names);
     }
+
+    public function testAutowiredInstancesAreCachedAsSingletons(): void
+    {
+        $container = $this->getContainer();
+
+        $this->assertSame($container->get(Bread::class), $container->get(Bread::class));
+    }
+
+    public function testAliasedInstancesAreCachedByRequestedId(): void
+    {
+        $container = $this->getContainer();
+        $container->set(Base::class, ConcreteBase::class);
+
+        $this->assertSame($container->get(Base::class), $container->get(Base::class));
+    }
+
+    public function testClosureInstancesAreCachedAsSingletons(): void
+    {
+        $container = $this->getContainer();
+        $container->set(Bread::class, fn() => new Bread());
+
+        $this->assertSame($container->get(Bread::class), $container->get(Bread::class));
+    }
+
+    public function testFactoryReturnsFreshInstancesEachCall(): void
+    {
+        $container = $this->getContainer();
+        $container->factory(Bread::class, fn() => new Bread());
+
+        $this->assertNotSame($container->get(Bread::class), $container->get(Bread::class));
+    }
+
+    public function testReSetClearsCachedInstance(): void
+    {
+        $container = $this->getContainer();
+        $container->set(Base::class, ConcreteBase::class);
+        $first = $container->get(Base::class);
+
+        $container->set(Base::class, ConcreteBase::class);
+        $second = $container->get(Base::class);
+
+        $this->assertNotSame($first, $second);
+    }
 }

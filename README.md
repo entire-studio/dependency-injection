@@ -74,6 +74,22 @@ $ php examples/basic.php
 ## Other examples
 See `examples/` for more examples.
 
+## Lifecycle
+
+By default, the container caches resolved instances — subsequent `get($id)` calls
+return the same object (singleton-by-default).
+
+To get a fresh instance on every `get()`, register a factory:
+
+```php
+$di->factory(Clock::class, fn() => new SystemClock());
+$a = $di->get(Clock::class);
+$b = $di->get(Clock::class);
+// $a !== $b
+```
+
+Re-registering with `set()` or `factory()` clears any cached instance for that id.
+
 ## Commands
 
 ### Development
