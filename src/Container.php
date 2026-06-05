@@ -301,6 +301,9 @@ class Container implements ContainerInterface
         }
 
         if ($type instanceof ReflectionUnionType) {
+            if ($param->isDefaultValueAvailable()) {
+                return $param->getDefaultValue();
+            }
             throw new ContainerException(
                 sprintf(
                     'Failed to resolve class "%s" because of union type for param "%s".',
@@ -311,6 +314,9 @@ class Container implements ContainerInterface
         }
 
         if ($type instanceof ReflectionIntersectionType) {
+            if ($param->isDefaultValueAvailable()) {
+                return $param->getDefaultValue();
+            }
             throw new ContainerException(
                 sprintf(
                     'Failed to resolve class "%s" because of intersection type for param "%s".',

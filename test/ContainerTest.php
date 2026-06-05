@@ -37,6 +37,7 @@ use EntireStudio\DependencyInjection\Test\Mocks\Pizza;
 use EntireStudio\DependencyInjection\Test\Mocks\Pizzeria;
 use EntireStudio\DependencyInjection\Test\Mocks\Salad;
 use EntireStudio\DependencyInjection\Test\Mocks\Sandwich;
+use EntireStudio\DependencyInjection\Test\Mocks\SandwichWithDefault;
 use EntireStudio\DependencyInjection\Test\Mocks\Snack;
 use EntireStudio\DependencyInjection\Test\Mocks\Vodka;
 
@@ -531,5 +532,14 @@ class ContainerTest extends TestCase
 
         $container = $this->getContainer();
         $container->get(Loggable::class);
+    }
+
+    public function testUnionTypeWithDefaultUsesDefault(): void
+    {
+        $container = $this->getContainer();
+        $sandwich = $container->get(SandwichWithDefault::class);
+
+        $this->assertInstanceOf(SandwichWithDefault::class, $sandwich);
+        $this->assertNull($sandwich->topping);
     }
 }
