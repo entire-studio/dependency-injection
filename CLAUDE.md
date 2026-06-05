@@ -18,41 +18,26 @@ vendor/bin/phpunit --testdox -c phpunit.xml --filter testMethodName
 
 ## Architecture
 
-This is a minimal PSR-11 compatible dependency injection container published as `entire-studio/dependency-injection`.
+This is a PSR-11 compatible dependency injection container published as `entire-studio/dependency-injection`.
 
-**Single source file:** `src/Container.php` — the entire container implementation lives here. It implements `Psr\Container\ContainerInterface` with three public methods: `get`, `has`, and `set`.
+**Core implementation:** `src/Container.php` implements `Psr\Container\ContainerInterface`. Public API:
+- `get($id)` / `has($id)` — PSR-11
+- `set($id, Closure|string)` — alias or Closure binding (cached as singleton)
+- `factory($id, Closure)` — per-call factory (not cached)
+- `value($id, mixed)` — literal value binding
+- `unset($id)` / `clear()` — drop bindings; `clear()` preserves self-registration
 
-**Resolution flow in `Container::resolve()`:**
-1. Check if a class/interface is registered via `set()` — if so, resolve the registered alias or call the callable with the container as argument.
-2. Reflect the target class constructor to auto-wire dependencies recursively.
-3. Throw `ContainerException` for union types, missing type hints, or non-instantiable classes.
-4. Throw `NotFoundException` for non-existent classes.
+**Resolution flow:** `get()` walks the alias chain (with cycle detection), then `resolve()` reflects the target class and recursively autowires constructor params. `resolveParameter()` handles every type-hint shape (named class, union, intersection, builtin, self/parent/static, variadic, nullable, defaulted). All errors implementing `Throwable` from user Closures are wrapped as `ContainerException`; inner missing-dep `NotFoundException` is also wrapped so only the top-level requested id can yield NFE.
 
-**Limitations by design:** Built-in (scalar) constructor parameters cannot be auto-wired — register a callable via `set()` to handle those cases (see `examples/callable.php`).
+**Lifecycle:** Singleton-by-default. `factory()` opts out per-id. The container self-registers as `ContainerInterface` / `self::class` / `static::class` in the constructor.
 
 **Exceptions** (`src/Exceptions/`): `ContainerException` implements `ContainerExceptionInterface`, `NotFoundException` implements `NotFoundExceptionInterface` — both extend `Exception`.
 
-**Tests** (`test/ContainerTest.php`) use food/house mock classes in `test/Mocks/` to cover: auto-wiring chains, interface mapping, union type errors, missing type hint errors, callable factories, and optional parameters.
+**Tests** (`test/ContainerTest.php`) use mock classes in `test/Mocks/` for autowiring, alias, lifecycle, error, and PSR-11 conformance cases.
 
-## Known backlog (Linear)
+## Backlog
 
-Open issues in the **Dependency Injection** project, roughly priority order:
-
-| ID | Title | Priority |
-|----|-------|----------|
-| ES-214 | No circular dependency detection (stack overflow on cycles) | High |
-| ES-213 | `ReflectionIntersectionType` not handled — silently injects `null` | High |
-| ES-212 | Scalar/built-in constructor params silently become `null` | High |
-| ES-216 | `is_callable($entry)` is ambiguous — string function names treated as callables | Medium |
-| ES-215 | Alias chains not followed — `set(A,B); set(B,C); get(A)` resolves B, not C | Medium |
-| ES-217 | Variadic constructor parameters not handled | Medium |
-| ES-219 | No instance caching — every `get()` rebuilds the full graph | Medium |
-| ES-96  | Verify full PSR-11 compliance | Medium |
-| ES-218 | Nullable/optional class-typed params always resolved, ignoring default | Low |
-| ES-220 | `get()` missing return type and PHPDoc generics | Low |
-| ES-221 | `@throws` annotations missing on public methods | Low |
-| ES-222 | Dead code: empty `__construct`, `new $id()` vs `newInstance()` | Low |
-| ES-223 | "not instantiable" message doesn't distinguish interfaces from abstracts | Low |
+Tracked in Linear under the **Dependency Injection** project. Use the Linear MCP tools to query current state — don't rely on a snapshot in this file.
 
 ## Standards
 
