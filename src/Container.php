@@ -80,7 +80,7 @@ class Container implements ContainerInterface
 
     public function has(string $id): bool
     {
-        return isset($this->entries[$id]);
+        return isset($this->entries[$id]) || array_key_exists($id, $this->instances);
     }
 
     /**
@@ -105,6 +105,17 @@ class Container implements ContainerInterface
         $this->entries[$id] = $factory;
         $this->factories[$id] = true;
         unset($this->instances[$id]);
+    }
+
+    /**
+     * Register a literal value (scalar, array, object instance). get($id) returns
+     * it as-is without resolution or invocation. Useful for configuration values
+     * required by autowired constructors.
+     */
+    public function value(string $id, mixed $value): void
+    {
+        $this->instances[$id] = $value;
+        unset($this->entries[$id], $this->factories[$id]);
     }
 
     private function cache(string $id, mixed $instance): mixed

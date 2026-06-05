@@ -105,7 +105,14 @@ $b = $di->get(Clock::class);
 // $a !== $b
 ```
 
-Re-registering with `set()` or `factory()` clears any cached instance for that id.
+To register a literal value (config string, array, pre-built object), use `value()`:
+
+```php
+$di->value('db.dsn', 'sqlite::memory:');
+$di->get('db.dsn'); // 'sqlite::memory:'
+```
+
+Re-registering with `set()`, `factory()`, or `value()` clears any cached state for that id.
 
 ## Commands
 

@@ -347,4 +347,49 @@ class ContainerTest extends TestCase
         $this->assertSame($container, $needs->psr);
         $this->assertSame($container, $needs->concrete);
     }
+
+    public function testValueReturnsScalarLiteral(): void
+    {
+        $container = $this->getContainer();
+        $container->value('db.dsn', 'sqlite::memory:');
+
+        $this->assertSame('sqlite::memory:', $container->get('db.dsn'));
+        $this->assertTrue($container->has('db.dsn'));
+    }
+
+    public function testValueReturnsArrayLiteral(): void
+    {
+        $container = $this->getContainer();
+        $container->value('app.flags', ['a' => 1, 'b' => 2]);
+
+        $this->assertSame(['a' => 1, 'b' => 2], $container->get('app.flags'));
+    }
+
+    public function testValueReturnsObjectInstanceUnchanged(): void
+    {
+        $container = $this->getContainer();
+        $instance = new Bread();
+        $container->value(Bread::class, $instance);
+
+        $this->assertSame($instance, $container->get(Bread::class));
+    }
+
+    public function testValueReturnsNull(): void
+    {
+        $container = $this->getContainer();
+        $container->value('maybe', null);
+
+        $this->assertNull($container->get('maybe'));
+        $this->assertTrue($container->has('maybe'));
+    }
+
+    public function testValueOverridesPriorSet(): void
+    {
+        $container = $this->getContainer();
+        $container->set(Base::class, ConcreteBase::class);
+        $sentinel = new ConcreteBase();
+        $container->value(Base::class, $sentinel);
+
+        $this->assertSame($sentinel, $container->get(Base::class));
+    }
 }
