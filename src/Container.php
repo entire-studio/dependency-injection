@@ -31,10 +31,6 @@ class Container implements ContainerInterface
     /** @var array<string, true> */
     private array $resolving = [];
 
-    public function __construct()
-    {
-    }
-
     /**
      * @template T of object
      * @param class-string<T>|string $id
@@ -139,6 +135,7 @@ class Container implements ContainerInterface
             );
         }
 
+        /** @var class-string $id */
         $reflectionClass = new ReflectionClass($id);
 
         if ($reflectionClass->isInterface()) {
@@ -170,21 +167,15 @@ class Container implements ContainerInterface
 
         $constructor = $reflectionClass->getConstructor();
 
-        if (!$constructor) {
-            return new $id();
-        }
-
-        $parameters = $constructor->getParameters();
-
-        if (!$parameters) {
-            return new $id();
+        if (!$constructor || !$constructor->getParameters()) {
+            return $reflectionClass->newInstance();
         }
 
         $this->resolving[$id] = true;
 
         try {
             $dependencies = [];
-            foreach ($parameters as $param) {
+            foreach ($constructor->getParameters() as $param) {
                 if ($param->isVariadic()) {
                     continue;
                 }
