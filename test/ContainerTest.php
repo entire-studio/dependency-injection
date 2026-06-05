@@ -8,6 +8,7 @@ use EntireStudio\DependencyInjection\Container;
 use EntireStudio\DependencyInjection\Exceptions\ContainerException;
 use EntireStudio\DependencyInjection\Exceptions\NotFoundException;
 use PHPUnit\Framework\TestCase;
+use Psr\Container\ContainerInterface;
 use stdClass;
 use EntireStudio\DependencyInjection\Test\Mocks\AbstractInsulation;
 use EntireStudio\DependencyInjection\Test\Mocks\Base;
@@ -24,6 +25,7 @@ use EntireStudio\DependencyInjection\Test\Mocks\GreatInsulation;
 use EntireStudio\DependencyInjection\Test\Mocks\House;
 use EntireStudio\DependencyInjection\Test\Mocks\Insulation;
 use EntireStudio\DependencyInjection\Test\Mocks\Lettuce;
+use EntireStudio\DependencyInjection\Test\Mocks\NeedsContainer;
 use EntireStudio\DependencyInjection\Test\Mocks\OliveOil;
 use EntireStudio\DependencyInjection\Test\Mocks\Pizza;
 use EntireStudio\DependencyInjection\Test\Mocks\Pizzeria;
@@ -321,5 +323,28 @@ class ContainerTest extends TestCase
 
         $this->assertTrue($container->has(Base::class));
         $this->assertFalse($container->has(ConcreteBase::class));
+    }
+
+    public function testGetContainerInterfaceReturnsSelf(): void
+    {
+        $container = $this->getContainer();
+
+        $this->assertSame($container, $container->get(ContainerInterface::class));
+    }
+
+    public function testGetContainerClassReturnsSelf(): void
+    {
+        $container = $this->getContainer();
+
+        $this->assertSame($container, $container->get(Container::class));
+    }
+
+    public function testContainerIsAutowiredAsConstructorDependency(): void
+    {
+        $container = $this->getContainer();
+        $needs = $container->get(NeedsContainer::class);
+
+        $this->assertSame($container, $needs->psr);
+        $this->assertSame($container, $needs->concrete);
     }
 }

@@ -31,6 +31,13 @@ class Container implements ContainerInterface
     /** @var array<string, true> */
     private array $resolving = [];
 
+    public function __construct()
+    {
+        $this->instances[ContainerInterface::class] = $this;
+        $this->instances[self::class] = $this;
+        $this->instances[static::class] = $this;
+    }
+
     /**
      * @template T of object
      * @param class-string<T>|string $id

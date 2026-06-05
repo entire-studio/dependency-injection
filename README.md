@@ -86,6 +86,11 @@ The container implements `Psr\Container\ContainerInterface` (psr/container ^2.0)
   from succeeding (autowiring may still resolve it), and `has() === true` does
   not guarantee `get()` will not throw.
 
+The container self-registers under `Psr\Container\ContainerInterface` and its own
+concrete class — `get(ContainerInterface::class)` and `get(Container::class)`
+both return `$this`, and constructor parameters of either type are auto-wired
+to the active container.
+
 ## Lifecycle
 
 By default, the container caches resolved instances — subsequent `get($id)` calls
