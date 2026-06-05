@@ -306,7 +306,20 @@ class Container implements ContainerInterface
             if ($param->isDefaultValueAvailable()) {
                 return $param->getDefaultValue();
             }
-            return $this->get($type->getName());
+            try {
+                return $this->get($type->getName());
+            } catch (NotFoundExceptionInterface $e) {
+                throw new ContainerException(
+                    sprintf(
+                        'Failed to resolve class "%s" because dependency "%s" for param "%s" was not found.',
+                        $id,
+                        $type->getName(),
+                        $name
+                    ),
+                    0,
+                    $e
+                );
+            }
         }
 
         if ($param->isDefaultValueAvailable()) {

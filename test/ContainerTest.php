@@ -20,6 +20,7 @@ use EntireStudio\DependencyInjection\Test\Mocks\Chicken;
 use EntireStudio\DependencyInjection\Test\Mocks\Cocktail;
 use EntireStudio\DependencyInjection\Test\Mocks\ConcreteBase;
 use EntireStudio\DependencyInjection\Test\Mocks\D;
+use EntireStudio\DependencyInjection\Test\Mocks\HasMissingDep;
 use EntireStudio\DependencyInjection\Test\Mocks\Hen;
 use EntireStudio\DependencyInjection\Test\Mocks\Loop1;
 use EntireStudio\DependencyInjection\Test\Mocks\GreatInsulation;
@@ -469,5 +470,26 @@ class ContainerTest extends TestCase
         } catch (ContainerException $e) {
             $this->assertSame($original, $e);
         }
+    }
+
+    public function testInnerMissingDependencyYieldsContainerException(): void
+    {
+        $container = $this->getContainer();
+
+        try {
+            $container->get(HasMissingDep::class);
+            $this->fail('Expected ContainerException');
+        } catch (ContainerException $e) {
+            $this->assertStringContainsString('dependency', $e->getMessage());
+            $this->assertInstanceOf(NotFoundException::class, $e->getPrevious());
+        }
+    }
+
+    public function testTopLevelMissingClassStillYieldsNotFoundException(): void
+    {
+        $this->expectException(NotFoundException::class);
+
+        $container = $this->getContainer();
+        $container->get('NonExistentTopLevelClass');
     }
 }
