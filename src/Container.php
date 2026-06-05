@@ -6,7 +6,9 @@ namespace EntireStudio\DependencyInjection;
 
 use EntireStudio\DependencyInjection\Exceptions\ContainerException;
 use EntireStudio\DependencyInjection\Exceptions\NotFoundException;
+use Psr\Container\ContainerExceptionInterface;
 use Psr\Container\ContainerInterface;
+use Psr\Container\NotFoundExceptionInterface;
 use ReflectionClass;
 use ReflectionException;
 use ReflectionNamedType;
@@ -22,9 +24,6 @@ class Container implements ContainerInterface
     {
     }
 
-    /**
-     * @throws ContainerException|NotFoundException|ReflectionException
-     */
     public function get(string $id)
     {
         if ($this->has($id)) {
@@ -51,19 +50,22 @@ class Container implements ContainerInterface
     }
 
     /**
-     * @throws NotFoundException|ContainerException|ReflectionException
+     * @throws ContainerExceptionInterface
+     * @throws ReflectionException
+     * @throws NotFoundExceptionInterface
      */
     private function resolve(string $id): object
     {
-        try {
-            $reflectionClass = new ReflectionClass($id);
-        } catch (ReflectionException $e) {
+        if (!class_exists($id) && !interface_exists($id)) {
             throw new NotFoundException(
-                $e->getMessage(),
-                $e->getCode(),
-                $e
+                sprintf(
+                    'Class "%s" does not exist.',
+                    $id,
+                )
             );
         }
+
+        $reflectionClass = new ReflectionClass($id);
 
         if (!$reflectionClass->isInstantiable()) {
             throw new ContainerException(
@@ -87,9 +89,6 @@ class Container implements ContainerInterface
         }
 
         $dependencies = array_map(
-            /**
-             * @throws ContainerException|NotFoundException|ReflectionException
-             */
             function (ReflectionParameter $param) use ($id) {
                 $name = $param->getName();
                 $type = $param->getType();
