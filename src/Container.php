@@ -173,6 +173,9 @@ class Container implements ContainerInterface
         }
 
         if ($type instanceof ReflectionNamedType && !$type->isBuiltin()) {
+            if ($param->isDefaultValueAvailable()) {
+                return $param->getDefaultValue();
+            }
             return $this->get($type->getName());
         }
 

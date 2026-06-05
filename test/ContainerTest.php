@@ -13,6 +13,7 @@ use EntireStudio\DependencyInjection\Test\Mocks\Base;
 use EntireStudio\DependencyInjection\Test\Mocks\Beer;
 use EntireStudio\DependencyInjection\Test\Mocks\Bread;
 use EntireStudio\DependencyInjection\Test\Mocks\Buffet;
+use EntireStudio\DependencyInjection\Test\Mocks\Chicken;
 use EntireStudio\DependencyInjection\Test\Mocks\Cocktail;
 use EntireStudio\DependencyInjection\Test\Mocks\ConcreteBase;
 use EntireStudio\DependencyInjection\Test\Mocks\D;
@@ -102,27 +103,30 @@ class ContainerTest extends TestCase
         $container->get(Pizza::class);
     }
 
-    public function testOptional(): void
+    public function testNullableClassParamWithDefaultHonorsDefault(): void
     {
         $container = $this->getContainer();
-        $instance = $container->get(Salad::class);
+        $salad = $container->get(Salad::class);
 
-        $this->assertInstanceOf(Salad::class, $instance);
+        $this->assertInstanceOf(Salad::class, $salad);
+        $this->assertNull($salad->chicken);
     }
 
-    public function testOptionalCanBeMappedToIgnore(): void
+    public function testNullableClassParamCanBeOverriddenViaCallable(): void
     {
         $container = $this->getContainer();
         $container->set(
             Salad::class,
             fn(Container $c) => new Salad(
                 $c->get(Lettuce::class),
-                $c->get(OliveOil::class)
+                $c->get(OliveOil::class),
+                $c->get(Chicken::class),
             )
         );
-        $instance = $container->get(Salad::class);
+        $salad = $container->get(Salad::class);
 
-        $this->assertInstanceOf(Salad::class, $instance);
+        $this->assertInstanceOf(Salad::class, $salad);
+        $this->assertInstanceOf(Chicken::class, $salad->chicken);
     }
 
     public function testNoTypeHintsThrowsException(): void
