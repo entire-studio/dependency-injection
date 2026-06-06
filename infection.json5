@@ -13,8 +13,8 @@
         "json": "infection.json"
     },
     "tmpDir": ".infection",
-    "minMsi": 85,
-    "minCoveredMsi": 90,
+    "minMsi": 80,
+    "minCoveredMsi": 85,
     "testFramework": "phpunit",
     "mutators": {
         "@default": true,

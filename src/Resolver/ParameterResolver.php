@@ -73,9 +73,6 @@ final class ParameterResolver
         }
 
         if ($type instanceof ReflectionIntersectionType) {
-            if ($param->isDefaultValueAvailable()) {
-                return $param->getDefaultValue();
-            }
             throw new ContainerException(
                 sprintf(
                     'Failed to resolve class "%s" because of intersection type for param "%s".',
@@ -87,17 +84,6 @@ final class ParameterResolver
 
         if ($type instanceof ReflectionNamedType && !$type->isBuiltin()) {
             $typeName = $type->getName();
-
-            if (in_array($typeName, ['self', 'parent', 'static'], true)) {
-                throw new ContainerException(
-                    sprintf(
-                        'Cannot autowire "%s" type hint for param "%s" of class "%s" — register a callable binding.',
-                        $typeName,
-                        $name,
-                        $id
-                    )
-                );
-            }
 
             if ($param->isDefaultValueAvailable()) {
                 return $param->getDefaultValue();

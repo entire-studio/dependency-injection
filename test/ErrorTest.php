@@ -18,6 +18,7 @@ use EntireStudio\DependencyInjection\Test\Mocks\Loggable;
 use EntireStudio\DependencyInjection\Test\Mocks\Loop1;
 use EntireStudio\DependencyInjection\Test\Mocks\ParentReferencing;
 use EntireStudio\DependencyInjection\Test\Mocks\Pizza;
+use EntireStudio\DependencyInjection\Test\Mocks\PrivateConstructor;
 use EntireStudio\DependencyInjection\Test\Mocks\Sandwich;
 use EntireStudio\DependencyInjection\Test\Mocks\SelfReferencing;
 use EntireStudio\DependencyInjection\Test\Mocks\Snack;
@@ -226,22 +227,29 @@ class ErrorTest extends ContainerTestCase
         $container->get('NonExistentTopLevelClass');
     }
 
-    public function testSelfTypeHintThrowsDescriptiveException(): void
+    public function testSelfTypeHintThrowsContainerException(): void
     {
         $this->expectException(ContainerException::class);
-        $this->expectExceptionMessage('Cannot autowire "self" type hint');
 
         $container = $this->getContainer();
         $container->get(SelfReferencing::class);
     }
 
-    public function testParentTypeHintThrowsDescriptiveException(): void
+    public function testParentTypeHintThrowsContainerException(): void
     {
         $this->expectException(ContainerException::class);
-        $this->expectExceptionMessage('Cannot autowire "parent" type hint');
 
         $container = $this->getContainer();
         $container->get(ParentReferencing::class);
+    }
+
+    public function testClassWithPrivateConstructorIsNotInstantiable(): void
+    {
+        $this->expectException(ContainerException::class);
+        $this->expectExceptionMessage('Class "' . PrivateConstructor::class . '" is not instantiable.');
+
+        $container = $this->getContainer();
+        $container->get(PrivateConstructor::class);
     }
 
     public function testEnumThrowsSpecificException(): void

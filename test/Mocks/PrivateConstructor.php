@@ -4,6 +4,9 @@ declare(strict_types=1);
 
 namespace EntireStudio\DependencyInjection\Test\Mocks;
 
-abstract class ParentReferencingBase
+class PrivateConstructor
 {
+    private function __construct()
+    {
+    }
 }

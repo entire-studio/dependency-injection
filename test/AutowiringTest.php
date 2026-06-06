@@ -194,6 +194,17 @@ class AutowiringTest extends ContainerTestCase
         $this->assertSame('hi:' . Bread::class, $result);
     }
 
+    public function testCallSkipsVariadicParameter(): void
+    {
+        $container = $this->getContainer();
+
+        $result = $container->call(
+            fn(Bread $bread, string ...$rest) => $bread::class . ':' . count($rest),
+        );
+
+        $this->assertSame(Bread::class . ':0', $result);
+    }
+
     public function testSingleSetterIsInvokedAfterConstruction(): void
     {
         $container = $this->getContainer();

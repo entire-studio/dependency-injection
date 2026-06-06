@@ -438,13 +438,13 @@ class Container implements ContainerInterface
         if (!$constructor || !$constructor->getParameters()) {
             try {
                 return $reflectionClass->newInstance();
-            } catch (ReflectionException $e) {
+            } catch (ReflectionException $e) { // @codeCoverageIgnoreStart
                 throw new ContainerException(
                     sprintf('Failed to instantiate "%s": %s', $id, $e->getMessage()),
                     0,
                     $e
                 );
-            }
+            } // @codeCoverageIgnoreEnd
         }
 
         $this->resolving[$id] = true;
@@ -463,12 +463,12 @@ class Container implements ContainerInterface
 
         try {
             return $reflectionClass->newInstanceArgs($dependencies);
-        } catch (ReflectionException $e) {
+        } catch (ReflectionException $e) { // @codeCoverageIgnoreStart
             throw new ContainerException(
                 sprintf('Failed to instantiate "%s": %s', $id, $e->getMessage()),
                 0,
                 $e
             );
-        }
+        } // @codeCoverageIgnoreEnd
     }
 }
