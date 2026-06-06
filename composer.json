@@ -14,7 +14,7 @@
         "sat": "vendor/bin/phpstan analyze -c phpstan.neon",
         "style": "vendor/bin/phpcs --standard=phpcs.xml",
         "style:fix": "vendor/bin/phpcbf --standard=phpcs.xml",
-        "mut": "XDEBUG_MODE=coverage vendor/bin/infection --threads=max --show-mutations"
+        "mutation": "XDEBUG_MODE=coverage vendor/bin/infection --threads=max --show-mutations"
     },
     "require": {
         "php": ">=8.2",
