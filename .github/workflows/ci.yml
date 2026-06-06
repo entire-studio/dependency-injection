@@ -44,7 +44,11 @@ jobs:
 
       - name: Install dependencies
         working-directory: ./
-        run: composer install --prefer-dist --no-progress
+        # Infection's transitive deps require PHP >=8.4.1, but Infection itself
+        # only runs on the highest matrix entry. --ignore-platform-req=php lets
+        # the lock install on every matrix PHP version; the incompatible files
+        # are only autoloaded by the mutation step.
+        run: composer install --prefer-dist --no-progress --ignore-platform-req=php
 
       - name: Check coding standard
         working-directory: ./
@@ -75,6 +79,6 @@ jobs:
           files: ./code-coverage-php-clover-${{ matrix.php-versions }}.xml
 
       - name: Run mutation tests (Infection)
-        if: matrix.php-versions == '8.2'
+        if: matrix.php-versions == '8.4'
         working-directory: ./
         run: XDEBUG_MODE=coverage ./vendor/bin/infection --threads=max --no-progress --no-interaction
