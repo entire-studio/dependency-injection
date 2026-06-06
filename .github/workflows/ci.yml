@@ -75,6 +75,6 @@ jobs:
           files: ./code-coverage-php-clover-${{ matrix.php-versions }}.xml
 
       - name: Run mutation tests (Infection)
-        if: matrix.php-versions == '8.4'
+        if: matrix.php-versions == '8.2'
         working-directory: ./
         run: XDEBUG_MODE=coverage ./vendor/bin/infection --threads=max --no-progress --no-interaction
