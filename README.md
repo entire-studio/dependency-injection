@@ -31,60 +31,51 @@ $ composer require entire-studio/dependency-injection
 
 declare(strict_types=1);
 
-require_once __DIR__ . '/../vendor/autoload.php';
+require_once __DIR__ . '/vendor/autoload.php';
 
 use EntireStudio\DependencyInjection\Container;
 
-// Create a DI container
-$di = new Container();
+interface Logger
+{
+    public function log(string $message): void;
+}
 
-// Two concrete implementations with a common interface
-interface Wall {}
-class WoodenWall implements Wall {}
-class ConcreteWall implements Wall {}
-
-// A class with two properties, one of which is concrete and the other one is an interface
-readonly class House {
-    public function __construct(
-        private Wall $mainWall,
-        private ConcreteWall $otherWalls,
-    ) {}
-
-    public function getWallClass(): string {
-        return sprintf(
-            '%s: %s' . PHP_EOL .
-            '%s: %s' . PHP_EOL,
-            'Main wall',
-            get_class($this->mainWall),
-            'Other walls',
-            get_class($this->otherWalls),
-        );
+class StdoutLogger implements Logger
+{
+    public function log(string $message): void
+    {
+        echo '[log] ' . $message . PHP_EOL;
     }
 }
 
-// Map the Wall interface to WoodenWall
-$di->set(Wall::class, WoodenWall::class); // Without this we wouldn't know whether to use Wooden or Concrete wall in place of the Wall interface
+class UserRepository
+{
+    public function __construct(public readonly Logger $logger) {}
+}
 
-// $di->set(House::class, House::class);  // No need to register House as with interface mapped - we can reflect other params
+$di = new Container();
+$di->set(Logger::class, StdoutLogger::class);
 
-// Get the instance
-$house = $di->get(House::class);
-
-// Call the class method
-echo $house->getWallClass();
-
-/*
- * Main wall: WoodenWall
- * Other walls: ConcreteWall
- */
-
-```
-```bash
-$ php examples/basic.php
+// UserRepository's only dep is autowired from the binding above
+$repo = $di->get(UserRepository::class);
+$repo->logger->log('ready');
 ```
 
 ## Other examples
-See `examples/` for more examples.
+The `examples/` directory has runnable scripts covering every feature:
+
+| File | Covers |
+| --- | --- |
+| [`01_autowiring.php`](examples/01_autowiring.php) | Interface binding + recursive constructor autowiring |
+| [`02_lifecycle.php`](examples/02_lifecycle.php) | `set()` singleton vs `factory()` per-call vs `value()` literal; `unset()` / `clear()` |
+| [`03_closures.php`](examples/03_closures.php) | Closure bindings for primitives and runtime config |
+| [`04_tagged_services.php`](examples/04_tagged_services.php) | `tag()` / `untag()` / `getTagged()` for plugin/listener groups |
+| [`05_decorators.php`](examples/05_decorators.php) | `extend()` for stacked decorators |
+| [`06_method_injection.php`](examples/06_method_injection.php) | `injectMethod()` for setter injection |
+| [`07_invoking_callables.php`](examples/07_invoking_callables.php) | `call()` for autowired handler/action dispatch |
+| [`08_inject_attribute.php`](examples/08_inject_attribute.php) | `#[Inject(id)]` attribute to override per-parameter resolution |
+
+Run any of them with `php examples/<file>.php`.
 
 ## PSR-11
 
