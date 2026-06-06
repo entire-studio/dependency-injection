@@ -150,6 +150,61 @@ class ErrorTest extends ContainerTestCase
         }
     }
 
+    public function testClosureNotFoundExceptionPassesThroughUnwrapped(): void
+    {
+        $container = $this->getContainer();
+        $original = new NotFoundException('not found');
+        $container->set(Bread::class, function () use ($original): never {
+            throw $original;
+        });
+
+        try {
+            $container->get(Bread::class);
+            $this->fail('Expected NotFoundException');
+        } catch (NotFoundException $e) {
+            $this->assertSame($original, $e);
+        }
+    }
+
+    public function testCircularDependencyResolvingIsClearedAfterThrow(): void
+    {
+        $container = $this->getContainer();
+
+        try {
+            $container->get(Hen::class);
+            $this->fail('Expected ContainerException');
+        } catch (ContainerException) {
+            // expected
+        }
+
+        $this->expectException(ContainerException::class);
+        $this->expectExceptionMessage('Circular dependency detected');
+        $container->get(Hen::class);
+    }
+
+    public function testMethodInjectionWithUncallableMethodThrows(): void
+    {
+        $this->expectException(ContainerException::class);
+        $this->expectExceptionMessage('Method injection for');
+        $this->expectExceptionMessage('is not callable');
+
+        $container = $this->getContainer();
+        $container->injectMethod(Bread::class, 'nonExistentMethod');
+        $container->get(Bread::class);
+    }
+
+    public function testInjectAttributeMissingIdMessageMentionsAttribute(): void
+    {
+        $container = $this->getContainer();
+
+        try {
+            $container->get(InjectedMissing::class);
+            $this->fail('Expected ContainerException');
+        } catch (ContainerException $e) {
+            $this->assertStringContainsString('#[Inject(', $e->getMessage());
+        }
+    }
+
     public function testInnerMissingDependencyYieldsContainerException(): void
     {
         $container = $this->getContainer();

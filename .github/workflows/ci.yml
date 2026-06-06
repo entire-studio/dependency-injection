@@ -73,3 +73,8 @@ jobs:
         with:
           token: ${{ secrets.CODECOV_TOKEN }}
           files: ./code-coverage-php-clover-${{ matrix.php-versions }}.xml
+
+      - name: Run mutation tests (Infection)
+        if: matrix.php-versions == '8.4'
+        working-directory: ./
+        run: XDEBUG_MODE=coverage ./vendor/bin/infection --threads=max --no-progress --no-interaction

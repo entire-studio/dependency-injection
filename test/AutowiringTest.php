@@ -182,6 +182,18 @@ class AutowiringTest extends ContainerTestCase
         $this->assertSame('invoked with ' . Bread::class, $result);
     }
 
+    public function testCallResolvesAutowiredParamAfterNamedArg(): void
+    {
+        $container = $this->getContainer();
+
+        $result = $container->call(
+            fn(string $who, Bread $bread) => $who . ':' . $bread::class,
+            ['who' => 'hi'],
+        );
+
+        $this->assertSame('hi:' . Bread::class, $result);
+    }
+
     public function testSingleSetterIsInvokedAfterConstruction(): void
     {
         $container = $this->getContainer();

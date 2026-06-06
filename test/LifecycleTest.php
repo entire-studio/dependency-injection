@@ -189,7 +189,16 @@ class LifecycleTest extends ContainerTestCase
 
         $tagged = $container->getTagged('food');
         $this->assertCount(1, $tagged);
+        $this->assertSame([0], array_keys($tagged));
         $this->assertInstanceOf(Cheese::class, $tagged[0]);
+    }
+
+    public function testUntagOnUnknownTagIsNoOp(): void
+    {
+        $container = $this->getContainer();
+        $container->untag(Bread::class, 'never-registered');
+
+        $this->assertSame([], $container->getTagged('never-registered'));
     }
 
     public function testGetTaggedReturnsEmptyForUnknownTag(): void

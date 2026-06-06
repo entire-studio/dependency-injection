@@ -34,6 +34,10 @@ project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 - `resolveParameter` extracted into a dedicated `ParameterResolver` class (ES-241).
 - Tests split into focused suites: `AutowiringTest`, `AliasTest`, `LifecycleTest`,
   `ErrorTest`, `Psr11Test` (ES-239).
+- Codecov PR threshold gate via `codecov.yml` — `project` uses `target: auto`
+  with a 1% drop tolerance; `patch` requires 90% coverage on new code (ES-243).
+- Mutation testing with Infection — `composer mut`, `infection.json5`, and a CI
+  step that enforces MSI ≥ 85% / Covered MSI ≥ 90% (ES-244).
 
 ### Fixed
 - Built-in/scalar constructor params no longer silently become `null`. Uses

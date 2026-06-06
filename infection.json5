@@ -1,0 +1,30 @@
+{
+    "$schema": "vendor/infection/infection/resources/schema.json",
+    "source": {
+        "directories": [
+            "src"
+        ]
+    },
+    "timeout": 30,
+    "logs": {
+        "text": "infection.log",
+        "html": "infection.html",
+        "summary": "infection-summary.log",
+        "json": "infection.json"
+    },
+    "tmpDir": ".infection",
+    "minMsi": 85,
+    "minCoveredMsi": 90,
+    "testFramework": "phpunit",
+    "mutators": {
+        "@default": true,
+        "IncrementInteger": false,
+        "DecrementInteger": false,
+        "CastString": false,
+        "TrueValue": {
+            "ignoreSourceCodeByRegex": [
+                ".*= true;.*"
+            ]
+        }
+    }
+}
