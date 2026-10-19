@@ -2,3 +2,8 @@
 /.idea/
 /.run/
 /.phpunit.cache/
+/.infection/
+/infection.log
+/infection.html
+/infection-summary.log
+/infection.json
